@@ -1,5 +1,6 @@
 import os
 os.system("pip install pygame")
+os.system("pip3 install pygame")
 import pygame
 from pygame.locals import *
 import Objects
