@@ -2,7 +2,6 @@
 #Also updates pygame when available
 import os, sys
 os.system("pip3 install pygame")
-os.system("pip3 install pygame_textinput")
 
 import app
 
