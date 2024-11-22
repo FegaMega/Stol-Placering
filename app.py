@@ -21,7 +21,7 @@ class ClassApp:
     def events(self):
         if pygame.event.get(QUIT, False):
             self.running = False
-        for event in pygame.event.get(KEYDOWN, False):
+        for event in pygame.event.get(KEYDOWN):
             if self.typingMode[0]:
                 if event.key == K_RETURN:
                     self.typingMode[0] = False
