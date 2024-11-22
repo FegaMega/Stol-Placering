@@ -21,8 +21,16 @@ class ClassApp:
     def events(self):
         if pygame.event.get(QUIT, False):
             self.running = False
-        for event in pygame.event.get(KEYDOWN, False):
-            if self.typingMode[0]:
+        
+
+    def variableUpdate(self):
+        self.mouse.update()
+        
+        for table in self.Tables:
+            self.typingMode = self.typingCheck(table)
+        
+        if self.typingMode[0]:
+            for event in pygame.event.get(KEYDOWN, False):
                 if event.key == K_RETURN:
                     self.typingMode[0] = False
                 elif event.key == K_BACKSPACE:
@@ -30,13 +38,6 @@ class ClassApp:
                 else:
                     self.typingMode[1].text += event.unicode
 
-    def variableUpdate(self):
-        self.mouse.update()
-        
-        
-
-        for table in self.Tables:
-            break
 
     
     def collisionChecks(self):
@@ -45,7 +46,6 @@ class ClassApp:
             if x[0] != None:
                 self.mouse.holding = x
                 break
-            self.typingMode = self.typingCheck(table)
 
     def typingCheck(self, table : Objects.ClassTable):
         if not pygame.event.get(MOUSEBUTTONDOWN, False):
@@ -90,6 +90,7 @@ def main() -> int:
         app.events()
         app.variableUpdate()
         app.collisionChecks()
+        pygame.event.get() #Clearing event list to work around https://github.com/pygame/pygame/issues/3229
         app.draw()
         app.displayUpdate()
         pygame.event.pump()
