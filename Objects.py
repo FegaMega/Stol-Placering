@@ -18,7 +18,7 @@ class ClassTable :
         screen.blit(self.surface, self.rect.topleft)
 
 class ClassSeat:
-    def __init__(self, x, y, FONT, parent) -> None:
+    def __init__(self, x, y, FONT, parent=None) -> None:
         self.pos = [x, y]
         self.diameter = 40
         self.color = (175, 175, 175)
@@ -67,6 +67,6 @@ class ClassMouse:
                         self.holding[0].rect.w = 25
             if type(self.holding[0]) == Objects.ClassSeat:
 
-                self.holding[0].pos[0] = (self.pos[0] - self.holding[0].parent.rect.x - self.holding[0].diameter/2)
-                self.holding[0].pos[1] = (self.pos[1] - self.holding[0].parent.rect.y - self.holding[0].diameter/2)
+                self.holding[0].pos[0] = (self.pos[0] - self.holding[0].diameter/2)
+                self.holding[0].pos[1] = (self.pos[1] - self.holding[0].diameter/2)
         

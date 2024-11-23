@@ -16,6 +16,7 @@ class ClassApp:
         self.running = True
         self.screen = pygame.display.set_mode( ( 700, 700 ) )
         self.Tables = [Objects.ClassTable(200, 200, 300, 300, self.FONT), Objects.ClassTable(200, 300, 25, 50, self.FONT)]
+        self.Seats =[Objects.ClassSeat(200, 240, self.FONT)]
         self.mouse = Objects.ClassMouse()
         self.typingMode = [False, None]
     def events(self):
@@ -45,25 +46,24 @@ class ClassApp:
                     self.typingMode[1].text += event.unicode
 
     def createAnotherSeat (self):
-        for table in self.Tables:
-            if mouseCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.x, table.rect.y, table.rect.width, table.rect.height):  
-                table.Seats.append(Objects.ClassSeat(self.mouse.pos[0]-table.rect.x, self.mouse.pos[1]-table.rect.y, self.FONT, table))
+        self.Seats.append(Objects.ClassSeat(self.mouse.pos[0], self.mouse.pos[1], self.FONT))
 
 
 
     def typingCheck(self, table : Objects.ClassTable):
         e = pygame.event.get(MOUSEBUTTONDOWN, False)
-        if not e:
-            return self.typingMode
         for event in e:
+            
             if event.button == 1:
-                if not mouseCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.x, table.rect.y, table.rect.width, table.rect.height):
-                    return [False, None]
-                for seat in table.Seats:
-                    if not mouseCollision(self.mouse.pos[0], self.mouse.pos[1], seat.pos[0]+table.rect.x, seat.pos[1]+table.rect.y, seat.diameter, seat.diameter):
+
+                for seat in self.Seats:
+            
+                    if not mouseCollision(self.mouse.pos[0], self.mouse.pos[1], seat.pos[0], seat.pos[1], seat.diameter, seat.diameter):
                         return [False, None]
+            
                     if self.typingMode[0] == True:
                         return [False, None]
+                    
                 return [True, seat]
         return [False, None]
     
