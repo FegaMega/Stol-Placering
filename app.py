@@ -15,19 +15,25 @@ class ClassApp:
         self.FONT = pygame.font.SysFont("Helvetica-bold", 24)
         self.running = True
         self.screen = pygame.display.set_mode( ( 700, 700 ) )
-        self.Tables = [Objects.ClassTable(200, 200, 50, 50, self.FONT), Objects.ClassTable(200, 300, 25, 50, self.FONT)]
+        self.Tables = [Objects.ClassTable(200, 200, 300, 300, self.FONT), Objects.ClassTable(200, 300, 25, 50, self.FONT)]
         self.mouse = Objects.ClassMouse()
         self.typingMode = [False, None]
     def events(self):
         if pygame.event.get(QUIT, False):
             self.running = False
-        
+        if self.typingMode[0]:
+            return
+        for event in pygame.event.get(KEYDOWN, False):
+            if event.key == K_c:
+                self.createAnotherSeat()
 
     def variableUpdate(self):
         self.mouse.update()
         
         for table in self.Tables:
             self.typingMode = self.typingCheck(table)
+            if self.typingMode[0] == True:
+                break
         
         if self.typingMode[0]:
             for event in pygame.event.get(KEYDOWN, False):
@@ -38,39 +44,69 @@ class ClassApp:
                 else:
                     self.typingMode[1].text += event.unicode
 
-
-    
-    def collisionChecks(self):
+    def createAnotherSeat (self):
         for table in self.Tables:
-            x = self.followCheck(table)
-            if x[0] != None:
-                self.mouse.holding = x
-                break
+            if mouseCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.x, table.rect.y, table.rect.width, table.rect.height):  
+                table.Seats.append(Objects.ClassSeat(self.mouse.pos[0]-table.rect.x, self.mouse.pos[1]-table.rect.y, self.FONT, table))
+
+
 
     def typingCheck(self, table : Objects.ClassTable):
-        if not pygame.event.get(MOUSEBUTTONDOWN, False):
+        e = pygame.event.get(MOUSEBUTTONDOWN, False)
+        if not e:
             return self.typingMode
-        if mouseCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.x, table.rect.y, table.rect.width, table.rect.height):
-            if self.typingMode[0] == False:
-                return [True, table]
-            
+        for event in e:
+            if event.button == 1:
+                if not mouseCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.x, table.rect.y, table.rect.width, table.rect.height):
+                    return [False, None]
+                for seat in table.Seats:
+                    if not mouseCollision(self.mouse.pos[0], self.mouse.pos[1], seat.pos[0]+table.rect.x, seat.pos[1]+table.rect.y, seat.diameter, seat.diameter):
+                        return [False, None]
+                    if self.typingMode[0] == True:
+                        return [False, None]
+                return [True, seat]
         return [False, None]
+    
+    def MoveDetection(self):
+        
+        for table in self.Tables:
+            self.mouse.holding = self.followCheck(table)
+            if self.mouse.holding[0] != None:
+                return
+            if self.mouse.holding[0] == None:
+                for seat in table.Seats:
+                    self.mouse.holding = self.SeatFollowCheck(table, seat)
+                    if self.mouse.holding[0] != None:
+                        return
+                
+
+        
     
     def followCheck(self, table : Objects.ClassTable) -> list:
         if not pygame.key.get_pressed()[K_LCTRL]:
-            self.mouse.holding[0] = None
             return [None, None, None]
         if not pygame.mouse.get_pressed(3)[0]:
-            self.mouse.holding[0] = None
             return [None, None, None]
         if not mouseCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.x, table.rect.y, table.rect.width, table.rect.height):
-            return [None, None, None]
+            return self.mouse.holding
         if self.mouse.holding[0] != None:
-            return [None, None, None]
+            return self.mouse.holding
         return [table, 
                 mouseCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.x, table.rect.bottom - 10, table.rect.w, 10), 
                 mouseCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.right-10, table.rect.y, 10, table.rect.h)]
         
+    def SeatFollowCheck(self, table : Objects.ClassTable, seat) -> list:
+        if not pygame.key.get_pressed()[K_LSHIFT]:
+            return [None, None, None]
+        if not pygame.mouse.get_pressed(3)[0]:
+            return [None, None, None]
+        if self.mouse.holding[0] != None:
+            return self.mouse.holding
+        if not mouseCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.x+seat.pos[0], table.rect.y+seat.pos[1], seat.diameter, seat.diameter):
+            return self.mouse.holding
+        return [seat, None, None]
+
+
     def draw(self):
         self.screen.fill((100, 100, 100))
         for table in self.Tables:
@@ -89,7 +125,7 @@ def main() -> int:
     while app.running:
         app.events()
         app.variableUpdate()
-        app.collisionChecks()
+        app.MoveDetection()
         pygame.event.get() #Clearing event list to work around https://github.com/pygame/pygame/issues/3229
         app.draw()
         app.displayUpdate()
