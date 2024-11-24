@@ -70,7 +70,7 @@ class ClassApp:
         self.Room["RoundTables"].append(Objects.ClassRoundTable(self.mouse.pos[0], self.mouse.pos[1], 150))
     def deleteASeat(self):
         for seat in self.Room["Seats"]:
-            if mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], [seat.pos[0]+seat.diameter/2, seat.pos[1]+seat.diameter/2], seat.diameter):
+            if mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], seat.rect.center, seat.diameter):
                 self.Room["Seats"].pop(self.Room["Seats"].index(seat))
                 return 1
         return 0
@@ -97,7 +97,7 @@ class ClassApp:
 
                 for seat in self.Room["Seats"]:
 
-                    if mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], [seat.pos[0]+seat.diameter/2, seat.pos[1]+seat.diameter/2], seat.diameter):
+                    if mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], seat.rect.center, seat.diameter):
                         return [True, seat]
                     
                 return [False, None]
@@ -154,7 +154,7 @@ class ClassApp:
             return [None, None, None]
         if self.mouse.holding[0] != None:
             return self.mouse.holding
-        if not mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], [seat.pos[0]+seat.diameter/2, seat.pos[1]+seat.diameter/2], seat.diameter):
+        if not mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], seat.rect.center, seat.diameter):
             return self.mouse.holding
 
         return [seat, None, None]

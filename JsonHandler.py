@@ -47,10 +47,12 @@ def WriteRoom(Folder, ID, Room):
    for table in Room["RoundTables"]:
       roundTables.append([table.rect.x, table.rect.y, table.diameter])
    for seat in Room["Seats"]:
+
       if type(seat.parent) == Objects.ClassTable:
-         seats.append([seat.pos[0], seat.pos[1], [Room["Tables"].index(seat.parent), 0], seat.text])
+         seats.append([seat.rect.x, seat.rect.y[1], [Room["Tables"].index(seat.parent), 0], seat.text])
       if type(seat.parent) == Objects.ClassRoundTable:
-         seats.append([seat.pos[0], seat.pos[1], [Room["RoundTables"].index(seat.parent), 1], seat.text])
+         seats.append([seat.rect.x, seat.rect.y[1], [Room["RoundTables"].index(seat.parent), 1], seat.text])
+
    tavla = [Room["Tavla"].rect.x, Room["Tavla"].rect.y, Room["Tavla"].rect.w, Room["Tavla"].rect.h]
    jsonWrite[ID]["Tables"] = tables
    jsonWrite[ID]["RoundTables"] = roundTables
