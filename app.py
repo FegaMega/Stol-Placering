@@ -25,10 +25,40 @@ class ClassApp:
         self.running = True
         self.jsonLink = "data/Rum.json"
         self.screen = pygame.display.set_mode( ( 700, 700 ) )
-        jsonRoom = JsonHandler.ReadRoom(self.jsonLink, "Room1", self.FONT)
-        self.Room = jsonRoom
+        self.UIstate = None
+        self.GUI = {
+            "EscapeUI" : [Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-85, 100, 50, "OPEN"), 
+                          Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-25, 100, 50, "NEW"),
+                          Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+35, 100, 50, "DELETE")],
+            "OPENUI" : [],
+            "NEWUI" : [Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+5, 100, 50, "")]
+
+        }
+        self.GUIRoomFill()
+        self.currentRoom = "Room1"
+        self.Room = JsonHandler.ReadRoom(self.jsonLink, self.currentRoom, self.FONT)
         self.mouse = Objects.ClassMouse()
         self.typingMode = [False, None]
+        
+    def GUIRoomFill(self):
+        nr = 0
+        self.GUI["OPENUI"] = []
+        for room in JsonHandler.GetJson(self.jsonLink).keys():
+            self.GUI["OPENUI"].append(Objects.ClassButton(self.screen.get_size()[0]/2-50, 25*nr+50, 100, 20, room))
+            nr += 1     
+    def changeRoom(self, RoomID):
+        self.currentRoom = RoomID
+        self.Room = JsonHandler.ReadRoom(self.jsonLink, self.currentRoom, self.FONT)
+
+    def saveRoom(self):
+        JsonHandler.WriteRoom(self.jsonLink, self.currentRoom, self.Room)
+
+    def NewRoom(self, ID):
+        JsonHandler.CreateRoom(self.jsonLink, ID)
+
+    def deleteRoom(self, ID):
+        JsonHandler.RemoveRoom(self.jsonLink, ID)
+
     def events(self):
         if pygame.event.get(QUIT, False):
             self.running = False
@@ -47,13 +77,20 @@ class ClassApp:
                 elif self.deleteATable():
                     continue
                 self.deleteARoundTable()
+            if event.key == K_ESCAPE:
+                if self.UIstate != "Escape":
+                    self.UIstate = "Escape"
+                else: 
+                    self.UIstate = None
+        self.ButtonCheck()
     def variableUpdate(self):
         self.mouse.update(self.Room["Tables"], self.Room["RoundTables"])
         
         self.typingMode = self.typingCheck()
         
         if self.typingMode[0]:
-            self.typingMode[1].color = (255, 0, 0)
+            if type(self.typingMode[1]) == Objects.ClassSeat:
+                self.typingMode[1].color = (255, 0, 0)
             for event in pygame.event.get(KEYDOWN, False):
                 if event.key == K_RETURN:
                     self.typingMode[0] = False
@@ -68,6 +105,7 @@ class ClassApp:
         self.Room["Tables"].append(Objects.ClassTable(self.mouse.pos[0], self.mouse.pos[1], 100, 100))
     def createAnotherRoundTable (self):
         self.Room["RoundTables"].append(Objects.ClassRoundTable(self.mouse.pos[0], self.mouse.pos[1], 150))
+
     def deleteASeat(self):
         for seat in self.Room["Seats"]:
             if mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], [seat.pos[0]+seat.diameter/2, seat.pos[1]+seat.diameter/2], seat.diameter):
@@ -159,6 +197,42 @@ class ClassApp:
 
         return [seat, None, None]
 
+    def ButtonCheck(self):
+        if self.UIstate == "Escape":
+            for button in self.GUI["EscapeUI"]:
+                if not pygame.mouse.get_pressed(3)[0]:
+                    continue
+                if not mouseCollision(self.mouse.pos[0], self.mouse.pos[1], button.rect.x, button.rect.y, button.rect.w, button.rect.h):
+                    continue
+                else:
+                    self.UIstate = button.text
+                    break
+        if self.UIstate == "OPEN":
+            for button in self.GUI["OPENUI"]:
+                if not pygame.mouse.get_pressed(3)[0]:
+                    continue
+                if not mouseCollision(self.mouse.pos[0], self.mouse.pos[1], button.rect.x, button.rect.y, button.rect.w, button.rect.h):
+                    continue
+                else:
+                    self.changeRoom(button.text)
+                    self.UIstate = None
+                    break
+        if self.UIstate == "NEW":
+            if self.typingMode[1] != self.GUI["NEWUI"][0]:
+                self.typingMode[0] = True
+                self.typingMode[1] = self.GUI["NEWUI"][0]
+            elif self.typingMode[0] == False:
+                self.UIstate = None
+                self.saveRoom()
+                self.NewRoom(self.GUI["NEWUI"][0].text)   
+                self.changeRoom(self.GUI["NEWUI"][0].text)
+                self.GUI["NEWUI"][0].text = ""
+                self.GUIRoomFill()
+        if self.UIstate == "DELETE":
+            self.deleteRoom(self.currentRoom)
+            self.changeRoom(self.GUI["OPENUI"][0].text)
+            self.GUIRoomFill()
+            self.UIstate = "OPEN"
 
     def draw(self):
         self.screen.fill((100, 100, 100))
@@ -168,8 +242,13 @@ class ClassApp:
             table.draw(self.screen)
         for seat in self.Room["Seats"]:
             seat.draw(self.screen, self.FONT)        
-
         self.Room["Tavla"].draw(self.screen, self.FONT)
+        if (self.UIstate == "Escape" or 
+            self.UIstate == "OPEN" or 
+            self.UIstate == "NEW"
+            ):
+            for Element in self.GUI[self.UIstate + "UI"]:
+                Element.draw(self.screen, self.FONT)
 
     def displayUpdate(self):
         pygame.display.update()
@@ -188,7 +267,8 @@ def main() -> int:
         app.draw()
         app.displayUpdate()
         pygame.event.pump()
-    JsonHandler.WriteRoom(app.jsonLink, "Room1", app.Room)
+    print(app.Room)
+    JsonHandler.WriteRoom(app.jsonLink, app.currentRoom, app.Room)
     pygame.quit()
     return 0
 

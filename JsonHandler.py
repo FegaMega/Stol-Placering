@@ -1,5 +1,9 @@
 import JH, Objects
 JH = JH.JsonHandler()
+
+def GetJson(Folder):
+   return JH.JsonReader(Folder)
+
 def ReadRoom(Folder, ID, FONT):
    jsonRead = JH.JsonReader(Folder)
    Room = {
@@ -32,7 +36,7 @@ def ReadRoom(Folder, ID, FONT):
             Room["Seats"].append(Objects.ClassSeat(seat[0], seat[1], FONT, None, seat[3]))
 
 
-   if jsonRead[ID]["Tavla"] != []:  
+   if jsonRead[ID]["Tavla"]:  
       Room["Tavla"] = Objects.ClassTavla(jsonRead[ID]["Tavla"][0], jsonRead[ID]["Tavla"][1], jsonRead[ID]["Tavla"][2], jsonRead[ID]["Tavla"][3], FONT)
    else:
       Room["Tavla"] = Objects.ClassTavla(100, 100, 500, 50, FONT)
@@ -60,4 +64,23 @@ def WriteRoom(Folder, ID, Room):
    jsonWrite[ID]["RoundTables"] = roundTables
    jsonWrite[ID]["Seats"] = seats
    jsonWrite[ID]["Tavla"] = tavla
+   print(jsonWrite)
    JH.JsonWriter(Folder, jsonWrite)
+
+def CreateRoom(Folder, ID):
+   json = JH.JsonReader(Folder)
+   
+   Room =  {
+      "Tables" : [],
+      "RoundTables" : [],
+      "Seats" : [],
+      "Tavla" : None
+   }
+   
+   
+   json[ID] = Room
+   JH.JsonWriter(Folder, json)
+def RemoveRoom(Folder, ID):
+   json = JH.JsonReader(Folder)
+   json.pop(ID)
+   JH.JsonWriter(Folder, json)
