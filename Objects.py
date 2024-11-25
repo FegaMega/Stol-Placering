@@ -9,8 +9,8 @@ def mouseCircleCollision(Ax, Ay, Bc, Bd):
 
 
 class ClassTable : 
-    def __init__(self, x, y, w, h) -> None:
-        self.rect = pygame.Rect(x, y, w, h)
+    def __init__(self, x, y, w, h, scale=1) -> None:
+        self.rect = pygame.Rect((x*scale), (y*scale), (w*scale), (h*scale))
         self.color = (0, 0, 0)
         
         
@@ -21,8 +21,8 @@ class ClassTable :
         screen.blit(self.surface, self.rect.topleft)
 
 class ClassButton:
-    def __init__(self, x, y, w, h, text, color=(50, 50, 50)) -> None:
-        self.rect = pygame.Rect(x, y, w, h)
+    def __init__(self, x, y, w, h, text, color=(50, 50, 50), scale=1) -> None:
+        self.rect = pygame.Rect((x*scale), (y*scale), (w*scale), (h*scale))
         self.color = color
         self.text = text
         self.pressed = False
@@ -41,10 +41,10 @@ class ClassButton:
 
 
 class ClassRoundTable:
-    def __init__(self, x, y, d) -> None:
-        self.rect = pygame.Rect(x, y, d, d)
+    def __init__(self, x, y, d, scale=1) -> None:
+        self.rect = pygame.Rect((x*scale), (y*scale), (d*scale), (d*scale))
         self.color = (0, 0, 0)
-        self.diameter = d
+        self.diameter = d*scale
     def draw(self, screen):
         self.surface = pygame.Surface((self.rect.w, self.rect.h)).convert_alpha()
         self.surface.fill((0, 0, 0, 0))
@@ -52,8 +52,8 @@ class ClassRoundTable:
         screen.blit(self.surface, self.rect.topleft)
 
 class ClassTavla : 
-    def __init__(self, x, y, w, h, FONT) -> None:
-        self.rect = pygame.Rect(x, y, w, h)
+    def __init__(self, x, y, w, h, FONT, scale) -> None:
+        self.rect = pygame.Rect((x*scale), (y*scale), (w*scale), (h*scale))
         self.color = (0, 0, 0)
         self.text = "TAVLAN"
         self.SurfaceText = FONT.render(self.text, True, (255, 255, 255))
@@ -68,13 +68,13 @@ class ClassTavla :
         screen.blit(self.surface, self.rect.topleft)
 
 class ClassSeat:
-    def __init__(self, x, y, FONT, parent=None, text="text") -> None:
-        self.pos = [x, y]
-        self.diameter = 40
+    def __init__(self, x, y, FONT, parent=None, text="text", scale=1) -> None:
+        self.diameter = 40 * scale
+        self.scale = scale
         self.rect = pygame.rect.Rect(x, y, self.diameter, self.diameter)
         if parent:
             if type(parent) == Objects.ClassTable:
-                self.parentPos = [x - parent.rect.x, y - parent.rect.y]
+                self.parentPos = [self.rect.centerx - parent.rect.x, self.rect.centery - parent.rect.y]
             if type(parent) == Objects.ClassRoundTable:
                 x = (self.rect.centerx - parent.rect.center[0])
                 if x == 0:
@@ -101,8 +101,8 @@ class ClassSeat:
     def draw(self, drawsurface, FONT):
         if self.parent:
             if type(self.parent) == ClassTable:
-                self.pos[0] = self.parentPos[0] + self.parent.rect.x
-                self.pos[1] = self.parentPos[1] + self.parent.rect.y
+                self.rect.centerx = self.parentPos[0] + self.parent.rect.x
+                self.rect.centery = self.parentPos[1] + self.parent.rect.y
                 if self.parentPos[0] > self.parent.rect.w:
                     self.parent = None
                 elif self.parentPos[1] > self.parent.rect.h:
@@ -115,8 +115,8 @@ class ClassSeat:
                 else:
                     spacing = math.pi*2 / (O/OpS)
                 
-                self.pos[0] = math.cos(self.parentPos[1]) * (self.parent.diameter/2) + self.parent.rect.center[0] - self.diameter/2
-                self.pos[1] = math.sin(self.parentPos[1]) * (self.parent.diameter/2) + self.parent.rect.center[1] - self.diameter/2
+                self.rect.centerx = math.cos(self.parentPos[1]) * (self.parent.diameter/2) + self.parent.rect.center[0]
+                self.rect.centery = math.sin(self.parentPos[1]) * (self.parent.diameter/2) + self.parent.rect.center[1]
                 
 
         self.SurfaceText : pygame.Surface = FONT.render(self.text, True, (255, 255, 255))
@@ -130,23 +130,24 @@ class ClassSeat:
         pos = self.diameter/2 - self.SurfaceText.get_size()[0]/2, self.diameter/2 - self.SurfaceText.get_size()[1]/2
         self.surface.blit(self.SurfaceText, pos)
         
-        drawsurface.blit(self.surface, self.pos)
+        drawsurface.blit(self.surface, self.rect)
         self.color = self.colorOG
 class ClassMouse:
     def __init__(self):
         self.pos = pygame.mouse.get_pos()
         self.holding = [None, None, None]
         self.buttons = pygame.mouse.get_pressed(3)
-    def update(self, tables, roundTables):
+
+    def update(self, tables, roundTables, scale):
         self.pos = pygame.mouse.get_pos()
         self.buttons = pygame.mouse.get_pressed(3)
-        self.holdingUpdate(tables, roundTables)
+        self.holdingUpdate(tables, roundTables, scale)
 
-    def holdingUpdate(self, tables, roundTables):
+    def holdingUpdate(self, tables, roundTables, scale):
         if self.holding[0] == None:
             return
-        tableSnapp = 50
-        gridSnapp = 25
+        tableSnapp = 50*scale["table"]
+        gridSnapp = 25*scale["table"]
         if type(self.holding[0]) == Objects.ClassTable:
             if not self.holding[1] and not self.holding[2]:
 
@@ -192,38 +193,38 @@ class ClassMouse:
 
         if type(self.holding[0]) == Objects.ClassSeat:
 
-            self.holding[0].pos[0] = (self.pos[0] - self.holding[0].diameter/2+gridSnapp/2)//gridSnapp *gridSnapp
-            self.holding[0].pos[1] = (self.pos[1] - self.holding[0].diameter/2+gridSnapp/2)//gridSnapp *gridSnapp
+            self.holding[0].rect.x = (self.pos[0] - self.holding[0].diameter/2+gridSnapp/2)//gridSnapp *gridSnapp
+            self.holding[0].rect.y = (self.pos[1] - self.holding[0].diameter/2+gridSnapp/2)//gridSnapp *gridSnapp
             self.holding[0].parent = None
             for table in tables:
                 if not mouseCollision(self.pos[0], self.pos[1], table.rect.x, table.rect.y, table.rect.w, table.rect.h):
                     continue
                 if self.pos[0] < table.rect.x + 15:
-                    self.holding[0].pos[0] = table.rect.x - self.holding[0].diameter/2
+                    self.holding[0].rect.x = table.rect.x - self.holding[0].diameter/2
                     if table.rect.h > tableSnapp:
-                        self.holding[0].pos[1] = (self.holding[0].pos[1]) // tableSnapp * tableSnapp +table.rect.y%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
+                        self.holding[0].rect.y = (self.holding[0].rect.y) // tableSnapp * tableSnapp +table.rect.y%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
                     else:
-                        self.holding[0].pos[1] = table.rect.y + table.rect.h/2 - self.holding[0].diameter/2
+                        self.holding[0].rect.y = table.rect.y + table.rect.h/2 - self.holding[0].diameter/2
                 elif self.pos[0] > table.rect.right-15:
-                    self.holding[0].pos[0] = table.rect.right - self.holding[0].diameter/2
+                    self.holding[0].rect.x = table.rect.right - self.holding[0].diameter/2
                     if table.rect.h > tableSnapp:
-                        self.holding[0].pos[1] = (self.holding[0].pos[1]) // tableSnapp * tableSnapp +table.rect.y%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
+                        self.holding[0].rect.y = (self.holding[0].rect.y) // tableSnapp * tableSnapp +table.rect.y%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
                     else:
-                        self.holding[0].pos[1] = table.rect.y + table.rect.h/2 - self.holding[0].diameter/2
+                        self.holding[0].rect.y = table.rect.y + table.rect.h/2 - self.holding[0].diameter/2
                 if self.pos[1] < table.rect.y + 15:
-                    self.holding[0].pos[1] = table.rect.y - self.holding[0].diameter/2
+                    self.holding[0].rect.y = table.rect.y - self.holding[0].diameter/2
                     if table.rect.w > tableSnapp:
-                        self.holding[0].pos[0] = (self.holding[0].pos[0]) // tableSnapp * tableSnapp +table.rect.x%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
+                        self.holding[0].rect.x = (self.holding[0].rect.x) // tableSnapp * tableSnapp +table.rect.x%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
                     else:
-                        self.holding[0].pos[0] = table.rect.x + table.rect.w/2 - self.holding[0].diameter/2
+                        self.holding[0].rect.x = table.rect.x + table.rect.w/2 - self.holding[0].diameter/2
                 elif self.pos[1] > table.rect.bottom-15:
-                    self.holding[0].pos[1] = table.rect.bottom - self.holding[0].diameter/2
+                    self.holding[0].rect.y = table.rect.bottom - self.holding[0].diameter/2
                     if table.rect.w > tableSnapp:
-                        self.holding[0].pos[0] = (self.holding[0].pos[0]) // tableSnapp * tableSnapp +table.rect.x%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
+                        self.holding[0].rect.x = (self.holding[0].rect.x) // tableSnapp * tableSnapp +table.rect.x%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
                     else:
-                        self.holding[0].pos[0] = table.rect.x + table.rect.w/2 - self.holding[0].diameter/2
-                self.holding[0].parentPos[0] = self.holding[0].pos[0] - table.rect.x
-                self.holding[0].parentPos[1] = self.holding[0].pos[1] - table.rect.y
+                        self.holding[0].rect.x = table.rect.x + table.rect.w/2 - self.holding[0].diameter/2
+                self.holding[0].parentPos[0] = self.holding[0].rect.centerx - table.rect.x
+                self.holding[0].parentPos[1] = self.holding[0].rect.centery - table.rect.y
                 self.holding[0].parent = table
             
             for table in roundTables:

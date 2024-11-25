@@ -4,7 +4,7 @@ JH = JH.JsonHandler()
 def GetJson(Folder):
    return JH.JsonReader(Folder)
 
-def ReadRoom(Folder, ID, FONT):
+def ReadRoom(Folder, ID, FONT, scale):
    jsonRead = JH.JsonReader(Folder)
    Room = {
       "Tables" : [],
@@ -20,46 +20,46 @@ def ReadRoom(Folder, ID, FONT):
 
    if tables != []: 
       for table in tables:
-         Room["Tables"].append(Objects.ClassTable(table[0], table[1], table[2], table[3]))
+         Room["Tables"].append(Objects.ClassTable(table[0], table[1], table[2], table[3], scale["table"]))
    
    if roundTables != []:
       for table in roundTables:
-         Room["RoundTables"].append(Objects.ClassRoundTable(table[0], table[1], table[2]))
+         Room["RoundTables"].append(Objects.ClassRoundTable(table[0], table[1], table[2], scale["table"]))
 
    if seats != []: 
       for seat in seats:
          if seat[2][1] == 0: 
-            Room["Seats"].append(Objects.ClassSeat(seat[0], seat[1], FONT, Room["Tables"][seat[2][0]], seat[3]))
+            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["table"], seat[1]*scale["table"], FONT, Room["Tables"][seat[2][0]], seat[3], scale["seat"]))
          if seat[2][1] == 1: 
-            Room["Seats"].append(Objects.ClassSeat(seat[0], seat[1], FONT, Room["RoundTables"][seat[2][0]], seat[3]))
+            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["table"], seat[1]*scale["table"], FONT, Room["RoundTables"][seat[2][0]], seat[3], scale["seat"]))
          if seat[2][1] == -1:
-            Room["Seats"].append(Objects.ClassSeat(seat[0], seat[1], FONT, None, seat[3]))
+            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["seat"], seat[1]*scale["seat"], FONT, None, seat[3], scale["seat"]))
 
 
    if jsonRead[ID]["Tavla"]:  
-      Room["Tavla"] = Objects.ClassTavla(jsonRead[ID]["Tavla"][0], jsonRead[ID]["Tavla"][1], jsonRead[ID]["Tavla"][2], jsonRead[ID]["Tavla"][3], FONT)
+      Room["Tavla"] = Objects.ClassTavla(jsonRead[ID]["Tavla"][0], jsonRead[ID]["Tavla"][1], jsonRead[ID]["Tavla"][2], jsonRead[ID]["Tavla"][3], FONT, scale["table"])
    else:
       Room["Tavla"] = Objects.ClassTavla(100, 100, 500, 50, FONT)
 
    return Room
 
-def WriteRoom(Folder, ID, Room):
+def WriteRoom(Folder, ID, Room, scale):
    jsonWrite = JH.JsonReader(Folder)
    tables = []
    roundTables = []
    seats = []
    for table in Room["Tables"]:
-      tables.append([table.rect.x, table.rect.y, table.rect.w, table.rect.h])
+      tables.append([table.rect.x/scale["table"], table.rect.y/scale["table"], table.rect.w/scale["table"], table.rect.h/scale["table"]])
    for table in Room["RoundTables"]:
-      roundTables.append([table.rect.x, table.rect.y, table.diameter])
+      roundTables.append([table.rect.x/scale["table"], table.rect.y/scale["table"], table.diameter/scale["table"]])
    for seat in Room["Seats"]:
       if type(seat.parent) == Objects.ClassTable:
-         seats.append([seat.pos[0], seat.pos[1], [Room["Tables"].index(seat.parent), 0], seat.text])
+         seats.append([seat.pos[0]/scale["table"], seat.pos[1]/scale["table"], [Room["Tables"].index(seat.parent), 0], seat.text])
       elif type(seat.parent) == Objects.ClassRoundTable:
-         seats.append([seat.pos[0], seat.pos[1], [Room["RoundTables"].index(seat.parent), 1], seat.text])
+         seats.append([seat.pos[0]/scale["table"], seat.pos[1]/scale["table"], [Room["RoundTables"].index(seat.parent), 1], seat.text])
       elif seat.parent == None:
-         seats.append([seat.pos[0], seat.pos[1], [0, -1], seat.text])
-   tavla = [Room["Tavla"].rect.x, Room["Tavla"].rect.y, Room["Tavla"].rect.w, Room["Tavla"].rect.h]
+         seats.append([seat.pos[0]/scale["seat"], seat.pos[1]/scale["seat"], [0, -1], seat.text])
+   tavla = [Room["Tavla"].rect.x/scale["table"], Room["Tavla"].rect.y/scale["table"], Room["Tavla"].rect.w/scale["table"], Room["Tavla"].rect.h/scale["table"]]
    jsonWrite[ID]["Tables"] = tables
    jsonWrite[ID]["RoundTables"] = roundTables
    jsonWrite[ID]["Seats"] = seats

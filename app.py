@@ -23,6 +23,11 @@ class ClassApp:
     def __init__(self) -> None:
         self.FontName = "Helvetica-bold"
         self.FontSize = 24
+        self.Scale = {
+            "seat" : 1,
+            "table" : 1,
+            "GUI" : 1
+        }
         self.FONT = pygame.font.SysFont(self.FontName, self.FontSize)
         self.running = True
         self.jsonLink = "data/Rum.json"
@@ -30,26 +35,27 @@ class ClassApp:
         self.UIstate = None
         self.GUI = {
             "EscapeUI" : [
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-145, 100, 50, "RENAME"), 
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-85, 100, 50, "OPEN"), 
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-25, 100, 50, "NEW"),
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+35, 100, 50, "DELETE")
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-145, 100, 50, "RENAME", scale=self.Scale["GUI"]), 
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-85, 100, 50, "OPEN", scale=self.Scale["GUI"]), 
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-25, 100, 50, "NEW", scale=self.Scale["GUI"]),
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+35, 100, 50, "DELETE", scale=self.Scale["GUI"]),
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+95, 100, 50, "Export as PDF", scale=self.Scale["GUI"])
             ],
             "OPENUI" : [],
             "NEWUI" : [
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+5, 100, 50, ""), 
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-45, 100, 50, "Name:")
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+5, 100, 50, "", scale=self.Scale["GUI"]), 
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-45, 100, 50, "Name:", scale=self.Scale["GUI"])
             ],
             "RENAMEUI" : [
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+5, 100, 50, ""), 
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-45, 100, 50, "Name:")
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+5, 100, 50, "", scale=self.Scale["GUI"]), 
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-45, 100, 50, "Name:", scale=self.Scale["GUI"])
             ]
 
         }
         self.GUIRoomFill()
         json = JsonHandler.GetJson(self.jsonLink).keys()
         self.currentRoom = next(iter(json))
-        self.Room = JsonHandler.ReadRoom(self.jsonLink, self.currentRoom, self.FONT)
+        self.Room = JsonHandler.ReadRoom(self.jsonLink, self.currentRoom, self.FONT, self.Scale)
         self.mouse = Objects.ClassMouse()
         self.typingMode = [False, None]
         
@@ -57,14 +63,14 @@ class ClassApp:
         nr = 0
         self.GUI["OPENUI"] = []
         for room in JsonHandler.GetJson(self.jsonLink).keys():
-            self.GUI["OPENUI"].append(Objects.ClassButton(self.screen.get_size()[0]/2-50, 25*nr+50, 100, 20, room))
+            self.GUI["OPENUI"].append(Objects.ClassButton(self.screen.get_size()[0]/2-50, 25*nr+50, 100, 20, room, scale=self.Scale["GUI"]))
             nr += 1     
     def changeRoom(self, RoomID):
         self.currentRoom = RoomID
-        self.Room = JsonHandler.ReadRoom(self.jsonLink, self.currentRoom, self.FONT)
+        self.Room = JsonHandler.ReadRoom(self.jsonLink, self.currentRoom, self.FONT, self.Scale)
 
     def saveRoom(self):
-        JsonHandler.WriteRoom(self.jsonLink, self.currentRoom, self.Room)
+        JsonHandler.WriteRoom(self.jsonLink, self.currentRoom, self.Room, self.Scale)
 
     def NewRoom(self, ID):
         JsonHandler.CreateRoom(self.jsonLink, ID)
@@ -100,7 +106,7 @@ class ClassApp:
                     self.UIstate = None
         self.ButtonCheck()
     def variableUpdate(self):
-        self.mouse.update(self.Room["Tables"], self.Room["RoundTables"])
+        self.mouse.update(self.Room["Tables"], self.Room["RoundTables"], self.Scale)
         
         self.typingMode = self.typingCheck()
         
@@ -124,7 +130,7 @@ class ClassApp:
 
     def deleteASeat(self):
         for seat in self.Room["Seats"]:
-            if mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], [seat.pos[0]+seat.diameter/2, seat.pos[1]+seat.diameter/2], seat.diameter):
+            if mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], [seat.rect.x+seat.diameter/2, seat.rect.y+seat.diameter/2], seat.diameter):
                 self.Room["Seats"].pop(self.Room["Seats"].index(seat))
                 return 1
         return 0
@@ -151,7 +157,7 @@ class ClassApp:
 
                 for seat in self.Room["Seats"]:
 
-                    if mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], [seat.pos[0]+seat.diameter/2, seat.pos[1]+seat.diameter/2], seat.diameter):
+                    if mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], [seat.rect.x+seat.diameter/2, seat.rect.y+seat.diameter/2], seat.diameter):
                         return [True, seat]
                     
                 return [False, None]
@@ -208,7 +214,7 @@ class ClassApp:
             return [None, None, None]
         if self.mouse.holding[0] != None:
             return self.mouse.holding
-        if not mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], [seat.pos[0]+seat.diameter/2, seat.pos[1]+seat.diameter/2], seat.diameter):
+        if not mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], [seat.rect.x+seat.diameter/2, seat.rect.y+seat.diameter/2], seat.diameter):
             return self.mouse.holding
 
         return [seat, None, None]
@@ -260,6 +266,10 @@ class ClassApp:
                 self.changeRoom(self.GUI["RENAMEUI"][0].text)
                 self.GUI["RENAMEUI"][0].text = ""
                 self.GUIRoomFill()
+        if self.UIstate == "Export as PDF":
+            self.UIstate = None
+            self.draw()
+            pygame.image.save(self.screen, "data/"+self.currentRoom + ".png")
                 
 
     def draw(self):
@@ -296,7 +306,7 @@ def main() -> int:
         app.draw()
         app.displayUpdate()
         pygame.event.pump()
-    JsonHandler.WriteRoom(app.jsonLink, app.currentRoom, app.Room)
+    JsonHandler.WriteRoom(app.jsonLink, app.currentRoom, app.Room, app.Scale)
     pygame.quit()
     return 0
 
