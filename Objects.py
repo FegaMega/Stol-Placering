@@ -50,14 +50,16 @@ class ClassTavla :
 class ClassSeat:
     def __init__(self, x, y, FONT, parent=None, text="text") -> None:
         self.pos = [x, y]
+        self.diameter = 40
+        self.rect = pygame.rect.Rect(x, y, self.diameter, self.diameter)
         if parent:
             if type(parent) == Objects.ClassTable:
                 self.parentPos = [x - parent.rect.x, y - parent.rect.y]
             if type(parent) == Objects.ClassRoundTable:
-                x = (self.pos[0] - parent.rect.center[0])
+                x = (self.rect.centerx - parent.rect.center[0])
                 if x == 0:
                     x = 0.00001
-                y = (self.pos[1] - parent.rect.center[1])
+                y = (self.rect.centery - parent.rect.center[1])
                 holdingAngle = math.atan2(abs(y), abs(x)) 
                 if x < 0:
                     holdingAngle = -holdingAngle
@@ -70,7 +72,6 @@ class ClassSeat:
                 self.parentPos = [parent.diameter, holdingAngle]
         else:
             self.parentPos = [0, 0]
-        self.diameter = 40
         self.colorOG = (175, 175, 175)
         self.color = self.colorOG
         self.text = text

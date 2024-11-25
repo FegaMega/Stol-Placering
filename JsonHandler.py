@@ -28,6 +28,8 @@ def ReadRoom(Folder, ID, FONT):
             Room["Seats"].append(Objects.ClassSeat(seat[0], seat[1], FONT, Room["Tables"][seat[2][0]], seat[3]))
          if seat[2][1] == 1: 
             Room["Seats"].append(Objects.ClassSeat(seat[0], seat[1], FONT, Room["RoundTables"][seat[2][0]], seat[3]))
+         if seat[2][1] == -1:
+            Room["Seats"].append(Objects.ClassSeat(seat[0], seat[1], FONT, None, seat[3]))
 
 
    if jsonRead[ID]["Tavla"] != []:  
@@ -49,8 +51,10 @@ def WriteRoom(Folder, ID, Room):
    for seat in Room["Seats"]:
       if type(seat.parent) == Objects.ClassTable:
          seats.append([seat.pos[0], seat.pos[1], [Room["Tables"].index(seat.parent), 0], seat.text])
-      if type(seat.parent) == Objects.ClassRoundTable:
+      elif type(seat.parent) == Objects.ClassRoundTable:
          seats.append([seat.pos[0], seat.pos[1], [Room["RoundTables"].index(seat.parent), 1], seat.text])
+      elif seat.parent == None:
+         seats.append([seat.pos[0], seat.pos[1], [0, -1], seat.text])
    tavla = [Room["Tavla"].rect.x, Room["Tavla"].rect.y, Room["Tavla"].rect.w, Room["Tavla"].rect.h]
    jsonWrite[ID]["Tables"] = tables
    jsonWrite[ID]["RoundTables"] = roundTables
