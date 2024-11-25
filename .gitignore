@@ -3,12 +3,14 @@ bin-debug/
 bin-release/
 [Oo]bj/
 [Bb]in/
+__pycache__/
 
 # Other files and folders
 .settings/
-.data/Rum.json
+data/Rum.json
 
 # Executables
+*.json
 *.swf
 *.air
 *.ipa

@@ -21,21 +21,34 @@ def mouseCircleCollision(Ax, Ay, Bc, Bd):
 
 class ClassApp:
     def __init__(self) -> None:
-        self.FONT = pygame.font.SysFont("Helvetica-bold", 24)
+        self.FontName = "Helvetica-bold"
+        self.FontSize = 24
+        self.FONT = pygame.font.SysFont(self.FontName, self.FontSize)
         self.running = True
         self.jsonLink = "data/Rum.json"
-        self.screen = pygame.display.set_mode( ( 700, 700 ) )
+        self.screen = pygame.display.set_mode( ( 1000, 1000 ) )
         self.UIstate = None
         self.GUI = {
-            "EscapeUI" : [Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-85, 100, 50, "OPEN"), 
-                          Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-25, 100, 50, "NEW"),
-                          Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+35, 100, 50, "DELETE")],
+            "EscapeUI" : [
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-145, 100, 50, "RENAME"), 
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-85, 100, 50, "OPEN"), 
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-25, 100, 50, "NEW"),
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+35, 100, 50, "DELETE")
+            ],
             "OPENUI" : [],
-            "NEWUI" : [Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+5, 100, 50, "")]
+            "NEWUI" : [
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+5, 100, 50, ""), 
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-45, 100, 50, "Name:")
+            ],
+            "RENAMEUI" : [
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+5, 100, 50, ""), 
+                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-45, 100, 50, "Name:")
+            ]
 
         }
         self.GUIRoomFill()
-        self.currentRoom = "Room1"
+        json = JsonHandler.GetJson(self.jsonLink).keys()
+        self.currentRoom = next(iter(json))
         self.Room = JsonHandler.ReadRoom(self.jsonLink, self.currentRoom, self.FONT)
         self.mouse = Objects.ClassMouse()
         self.typingMode = [False, None]
@@ -58,6 +71,9 @@ class ClassApp:
 
     def deleteRoom(self, ID):
         JsonHandler.RemoveRoom(self.jsonLink, ID)
+    
+    def renameRoom(self, ID, name):
+        JsonHandler.RenameRoom(self.jsonLink, ID, name)
 
     def events(self):
         if pygame.event.get(QUIT, False):
@@ -234,6 +250,17 @@ class ClassApp:
             self.changeRoom(self.GUI["OPENUI"][0].text)
             self.GUIRoomFill()
             self.UIstate = "OPEN"
+        if self.UIstate == "RENAME":
+            if self.typingMode[1] != self.GUI["RENAMEUI"][0]:
+                self.typingMode[0] = True
+                self.typingMode[1] = self.GUI["RENAMEUI"][0]
+            elif self.typingMode[0] == False:
+                self.UIstate = None
+                self.renameRoom(self.currentRoom, self.GUI["RENAMEUI"][0].text)
+                self.changeRoom(self.GUI["RENAMEUI"][0].text)
+                self.GUI["RENAMEUI"][0].text = ""
+                self.GUIRoomFill()
+                
 
     def draw(self):
         self.screen.fill((100, 100, 100))
@@ -246,7 +273,8 @@ class ClassApp:
         self.Room["Tavla"].draw(self.screen, self.FONT)
         if (self.UIstate == "Escape" or 
             self.UIstate == "OPEN" or 
-            self.UIstate == "NEW"
+            self.UIstate == "NEW" or
+            self.UIstate == "RENAME"
             ):
             for Element in self.GUI[self.UIstate + "UI"]:
                 Element.draw(self.screen, self.FONT)
@@ -268,7 +296,6 @@ def main() -> int:
         app.draw()
         app.displayUpdate()
         pygame.event.pump()
-    print(app.Room)
     JsonHandler.WriteRoom(app.jsonLink, app.currentRoom, app.Room)
     pygame.quit()
     return 0

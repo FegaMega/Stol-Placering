@@ -125,7 +125,8 @@ class ClassSeat:
         self.surface.fill((0, 0, 0, 0))
         
         pygame.draw.circle(self.surface, self.color, (self.diameter/2, self.diameter/2), self.diameter/2)
-        
+        if self.SurfaceText.get_size()[0] > self.diameter:
+            self.SurfaceText = pygame.transform.smoothscale(self.SurfaceText, [self.diameter, self.SurfaceText.get_size()[1]])
         pos = self.diameter/2 - self.SurfaceText.get_size()[0]/2, self.diameter/2 - self.SurfaceText.get_size()[1]/2
         self.surface.blit(self.SurfaceText, pos)
         

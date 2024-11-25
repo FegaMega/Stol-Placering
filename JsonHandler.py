@@ -64,7 +64,6 @@ def WriteRoom(Folder, ID, Room):
    jsonWrite[ID]["RoundTables"] = roundTables
    jsonWrite[ID]["Seats"] = seats
    jsonWrite[ID]["Tavla"] = tavla
-   print(jsonWrite)
    JH.JsonWriter(Folder, jsonWrite)
 
 def CreateRoom(Folder, ID):
@@ -83,4 +82,10 @@ def CreateRoom(Folder, ID):
 def RemoveRoom(Folder, ID):
    json = JH.JsonReader(Folder)
    json.pop(ID)
+   JH.JsonWriter(Folder, json)
+def RenameRoom(Folder, ID, Name):
+   json = JH.JsonReader(Folder)
+   json2 = JH.JsonReader(Folder)
+   json.pop(ID)
+   json[Name] = json2[ID]
    JH.JsonWriter(Folder, json)
