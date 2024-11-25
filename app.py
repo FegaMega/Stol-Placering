@@ -214,6 +214,7 @@ class ClassApp:
                 if not mouseCollision(self.mouse.pos[0], self.mouse.pos[1], button.rect.x, button.rect.y, button.rect.w, button.rect.h):
                     continue
                 else:
+                    self.saveRoom()
                     self.changeRoom(button.text)
                     self.UIstate = None
                     break
