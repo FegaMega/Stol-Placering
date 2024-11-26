@@ -29,11 +29,11 @@ def ReadRoom(Folder, ID, FONT, scale):
    if seats != []: 
       for seat in seats:
          if seat[2][1] == 0: 
-            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["table"], seat[1]*scale["table"], FONT, Room["Tables"][seat[2][0]], seat[3], scale["seat"]))
+            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["table"], seat[1]*scale["table"], FONT, Room["Tables"][seat[2][0]], seat[3], scale))
          if seat[2][1] == 1: 
-            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["table"], seat[1]*scale["table"], FONT, Room["RoundTables"][seat[2][0]], seat[3], scale["seat"]))
+            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["table"], seat[1]*scale["table"], FONT, Room["RoundTables"][seat[2][0]], seat[3], scale))
          if seat[2][1] == -1:
-            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["seat"], seat[1]*scale["seat"], FONT, None, seat[3], scale["seat"]))
+            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["seat"], seat[1]*scale["seat"], FONT, None, seat[3], scale))
 
 
    if jsonRead[ID]["Tavla"]:  
@@ -54,11 +54,11 @@ def WriteRoom(Folder, ID, Room, scale):
       roundTables.append([table.rect.x/scale["table"], table.rect.y/scale["table"], table.diameter/scale["table"]])
    for seat in Room["Seats"]:
       if type(seat.parent) == Objects.ClassTable:
-         seats.append([seat.pos[0]/scale["table"], seat.pos[1]/scale["table"], [Room["Tables"].index(seat.parent), 0], seat.text])
+         seats.append([seat.rect.centerx/scale["table"], seat.rect.centery/scale["table"], [Room["Tables"].index(seat.parent), 0], seat.text])
       elif type(seat.parent) == Objects.ClassRoundTable:
-         seats.append([seat.pos[0]/scale["table"], seat.pos[1]/scale["table"], [Room["RoundTables"].index(seat.parent), 1], seat.text])
+         seats.append([seat.rect.centerx/scale["table"], seat.rect.centery/scale["table"], [Room["RoundTables"].index(seat.parent), 1], seat.text])
       elif seat.parent == None:
-         seats.append([seat.pos[0]/scale["seat"], seat.pos[1]/scale["seat"], [0, -1], seat.text])
+         seats.append([seat.rect.centerx/scale["seat"], seat.rect.centery/scale["seat"], [0, -1], seat.text])
    tavla = [Room["Tavla"].rect.x/scale["table"], Room["Tavla"].rect.y/scale["table"], Room["Tavla"].rect.w/scale["table"], Room["Tavla"].rect.h/scale["table"]]
    jsonWrite[ID]["Tables"] = tables
    jsonWrite[ID]["RoundTables"] = roundTables

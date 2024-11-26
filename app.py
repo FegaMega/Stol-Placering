@@ -22,16 +22,17 @@ def mouseCircleCollision(Ax, Ay, Bc, Bd):
 class ClassApp:
     def __init__(self) -> None:
         self.FontName = "Helvetica-bold"
-        self.FontSize = 24
         self.Scale = {
             "seat" : 1,
             "table" : 1,
-            "GUI" : 1
+            "GUI" : 1,
+            "Font" : 1
         }
+        self.FontSize = int(24*self.Scale["Font"])
         self.FONT = pygame.font.SysFont(self.FontName, self.FontSize)
         self.running = True
         self.jsonLink = "data/Rum.json"
-        self.screen = pygame.display.set_mode( ( 1000, 1000 ) )
+        self.screen = pygame.display.set_mode( ( 1000, 1000 ), vsync=1 )
         self.UIstate = None
         self.GUI = {
             "EscapeUI" : [
@@ -122,11 +123,11 @@ class ClassApp:
                     self.typingMode[1].text += event.unicode
 
     def createAnotherSeat (self):
-        self.Room["Seats"].append(Objects.ClassSeat(self.mouse.pos[0], self.mouse.pos[1], self.FONT))
+        self.Room["Seats"].append(Objects.ClassSeat(self.mouse.pos[0], self.mouse.pos[1], self.FONT, scale=self.Scale))
     def createAnotherTable (self):
-        self.Room["Tables"].append(Objects.ClassTable(self.mouse.pos[0], self.mouse.pos[1], 100, 100))
+        self.Room["Tables"].append(Objects.ClassTable(self.mouse.pos[0], self.mouse.pos[1], 100, 100, self.Scale["table"]))
     def createAnotherRoundTable (self):
-        self.Room["RoundTables"].append(Objects.ClassRoundTable(self.mouse.pos[0], self.mouse.pos[1], 150))
+        self.Room["RoundTables"].append(Objects.ClassRoundTable(self.mouse.pos[0], self.mouse.pos[1], 150, self.Scale["table"]))
 
     def deleteASeat(self):
         for seat in self.Room["Seats"]:
