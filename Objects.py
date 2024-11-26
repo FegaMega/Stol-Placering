@@ -22,7 +22,7 @@ class ClassTable :
 
 class ClassButton:
     def __init__(self, x, y, w, h, text, color=(50, 50, 50), scale=1) -> None:
-        self.rect = pygame.Rect((x*scale), (y*scale), (w*scale), (h*scale))
+        self.rect = pygame.Rect((x), (y), (w*scale), (h*scale))
         self.color = color
         self.text = text
         self.pressed = False
@@ -68,10 +68,11 @@ class ClassTavla :
         screen.blit(self.surface, self.rect.topleft)
 
 class ClassSeat:
-    def __init__(self, x, y, FONT, parent=None, text="text", scale=1) -> None:
-        self.diameter = 40 * scale
+    def __init__(self, x, y, FONT, parent=None, text="text", scale={}) -> None:
+        self.diameter = 40 * scale["seat"]
         self.scale = scale
-        self.rect = pygame.rect.Rect(x, y, self.diameter, self.diameter)
+        self.rect = pygame.rect.Rect(0, 0, self.diameter, self.diameter)
+        self.rect.center = [x, y]
         if parent:
             if type(parent) == Objects.ClassTable:
                 self.parentPos = [self.rect.centerx - parent.rect.x, self.rect.centery - parent.rect.y]
