@@ -29,17 +29,17 @@ def ReadRoom(Folder, ID, FONT, scale):
    if seats != []: 
       for seat in seats:
          if seat[2][1] == 0: 
-            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["table"], seat[1]*scale["table"], FONT, Room["Tables"][seat[2][0]], seat[3], scale))
+            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["table"], seat[1]*scale["table"], FONT["Seat"], Room["Tables"][seat[2][0]], seat[3], scale))
          if seat[2][1] == 1: 
-            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["table"], seat[1]*scale["table"], FONT, Room["RoundTables"][seat[2][0]], seat[3], scale))
+            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["table"], seat[1]*scale["table"], FONT["Seat"], Room["RoundTables"][seat[2][0]], seat[3], scale))
          if seat[2][1] == -1:
-            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["seat"], seat[1]*scale["seat"], FONT, None, seat[3], scale))
+            Room["Seats"].append(Objects.ClassSeat(seat[0]*scale["seat"], seat[1]*scale["seat"], FONT["Seat"], None, seat[3], scale))
 
 
    if jsonRead[ID]["Tavla"]:  
-      Room["Tavla"] = Objects.ClassTavla(jsonRead[ID]["Tavla"][0], jsonRead[ID]["Tavla"][1], jsonRead[ID]["Tavla"][2], jsonRead[ID]["Tavla"][3], FONT, scale["table"])
+      Room["Tavla"] = Objects.ClassTavla(jsonRead[ID]["Tavla"][0], jsonRead[ID]["Tavla"][1], jsonRead[ID]["Tavla"][2], jsonRead[ID]["Tavla"][3], FONT["Table"], scale["table"])
    else:
-      Room["Tavla"] = Objects.ClassTavla(100, 100, 500, 50, FONT)
+      Room["Tavla"] = Objects.ClassTavla(100, 100, 500, 50, FONT["Table"])
 
    return Room
 

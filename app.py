@@ -26,13 +26,21 @@ class ClassApp:
             "seat" : 1,
             "table" : 1,
             "GUI" : 1,
-            "Font" : 1
+            "Font" : {
+                "Seat": 1,
+                "Table": 1,
+                "GUI": 1
+            }
         }
-        self.FontSize = int(24*self.Scale["Font"])
-        self.FONT = pygame.font.SysFont(self.FontName, self.FontSize)
+        self.FontSize = 20
+        self.FONT = {
+            "GUI" : pygame.font.SysFont(self.FontName, self.FontSize    *self.Scale["Font"]["GUI"]      *self.Scale["GUI"]),
+            "Table" : pygame.font.SysFont(self.FontName, self.FontSize  *self.Scale["Font"]["Table"]    *self.Scale["table"]),
+            "Seat" : pygame.font.SysFont(self.FontName, self.FontSize   *self.Scale["Font"]["Seat"]     *self.Scale["seat"])
+        }
         self.running = True
         self.jsonLink = "data/Rum.json"
-        self.screen = pygame.display.set_mode( ( 1000, 1000 ), vsync=1 )
+        self.screen = pygame.display.set_mode( ( 900, 900 ), vsync=1 )
         self.UIstate = None
         self.GUI = {
             "EscapeUI" : [
@@ -123,7 +131,7 @@ class ClassApp:
                     self.typingMode[1].text += event.unicode
 
     def createAnotherSeat (self):
-        self.Room["Seats"].append(Objects.ClassSeat(self.mouse.pos[0], self.mouse.pos[1], self.FONT, scale=self.Scale))
+        self.Room["Seats"].append(Objects.ClassSeat(self.mouse.pos[0], self.mouse.pos[1], self.FONT["Seat"], scale=self.Scale))
     def createAnotherTable (self):
         self.Room["Tables"].append(Objects.ClassTable(self.mouse.pos[0], self.mouse.pos[1], 100, 100, self.Scale["table"]))
     def createAnotherRoundTable (self):
@@ -280,15 +288,15 @@ class ClassApp:
         for table in self.Room["RoundTables"]:
             table.draw(self.screen)
         for seat in self.Room["Seats"]:
-            seat.draw(self.screen, self.FONT)        
-        self.Room["Tavla"].draw(self.screen, self.FONT)
+            seat.draw(self.screen, self.FONT["Seat"])        
+        self.Room["Tavla"].draw(self.screen, self.FONT["Table"])
         if (self.UIstate == "Escape" or 
             self.UIstate == "OPEN" or 
             self.UIstate == "NEW" or
             self.UIstate == "RENAME"
             ):
             for Element in self.GUI[self.UIstate + "UI"]:
-                Element.draw(self.screen, self.FONT)
+                Element.draw(self.screen, self.FONT["GUI"])
 
     def displayUpdate(self):
         pygame.display.update()
