@@ -39,8 +39,8 @@ class ClassApp:
             "Seat" : pygame.font.SysFont(self.FontName, self.FontSize   *self.Scale["Font"]["Seat"]     *self.Scale["seat"])
         }
         self.running = True
-        self.jsonLink = "data/Rum.json"
-        self.screen = pygame.display.set_mode( ( 900, 900 ), vsync=1 )
+        self.jsonLink = "data/Room.json"
+        self.screen = pygame.display.set_mode( ( 1000, 1000 ), vsync=1 )
         self.UIstate = None
         self.GUI = {
             "EscapeUI" : [
@@ -63,8 +63,13 @@ class ClassApp:
         }
         self.GUIRoomFill()
         json = JsonHandler.GetJson(self.jsonLink).keys()
-        self.currentRoom = next(iter(json))
-        self.Room = JsonHandler.ReadRoom(self.jsonLink, self.currentRoom, self.FONT, self.Scale)
+        if json:
+            self.currentRoom = next(iter(json))
+            self.Room = JsonHandler.ReadRoom(self.jsonLink, self.currentRoom, self.FONT, self.Scale)
+        else:
+            
+            JsonHandler.CreateRoom(self.jsonLink, "Room1")
+            self.changeRoom("Room1")
         self.mouse = Objects.ClassMouse()
         self.typingMode = [False, None]
         
