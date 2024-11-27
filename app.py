@@ -39,8 +39,10 @@ class ClassApp:
             "Seat" : pygame.font.SysFont(self.FontName, self.FontSize   *self.Scale["Font"]["Seat"]     *self.Scale["seat"])
         }
         self.running = True
-        self.jsonLink = "data/Room.json"
-        self.screen = pygame.display.set_mode( ( 1000, 1000 ), vsync=1 )
+        self.jsonLink = "data/Example-Room.json"
+        self.screen = pygame.display.set_mode( ( 700, 700 ), vsync=1 )
+        pygame.display.set_caption("Stol Placering av David Smidebrant")
+        pygame.display.set_icon(pygame.image.load("data/Icon.png"))
         self.UIstate = None
         self.GUI = {
             "EscapeUI" : [
@@ -320,7 +322,7 @@ def main() -> int:
         app.draw()
         app.displayUpdate()
         pygame.event.pump()
-    JsonHandler.WriteRoom(app.jsonLink, app.currentRoom, app.Room, app.Scale)
+    app.saveRoom()
     pygame.quit()
     return 0
 
