@@ -21,15 +21,20 @@ class ClassTable :
         screen.blit(self.surface, self.rect.topleft)
 
 class ClassButton:
-    def __init__(self, x, y, w, h, text, color=(50, 50, 50), scale=1) -> None:
+    def __init__(self, x, y, w, h, text, color=(50, 50, 50), scale=1, visualText="") -> None:
         self.rect = pygame.Rect((x), (y), (w*scale), (h*scale))
         self.color = color
         self.text = text
+        if visualText != "":
+
+            self.visualText = visualText
+        else:
+            self.visualText = text            
         self.pressed = False
 
     def draw(self, screen, FONT):
         
-        self.SurfaceText = FONT.render(self.text, True, (255, 255, 255))
+        self.SurfaceText = FONT.render(self.visualText, True, (255, 255, 255))
 
         self.surface = pygame.surface.Surface((self.rect.w, self.rect.h))
         self.surface.fill(self.color)
@@ -38,7 +43,28 @@ class ClassButton:
         
         screen.blit(self.surface, self.rect.topleft)
 
+class ClassButtonSlider:
+    def __init__(self, x, y, w, h, value, maxvalue, color=(50, 50, 50), scale=1) -> None:
+        self.rect = pygame.Rect((x), (y), (w*scale), (h*scale))
+        self.color = color
+        self.value = value         
+        self.maxvalue = maxvalue
+        self.pressed = False
+        self.scale =scale
+        self.SliderRect = pygame.Rect(10, 10, 10*scale, 10*scale)
+    def draw(self, screen, FONT):
 
+        self.surface = pygame.surface.Surface((self.rect.w, self.rect.h))
+        self.surface.fill(self.color)
+
+        self.SliderRect.center = (self.value*((self.rect.width-20*self.scale)*self.scale)/self.maxvalue, self.rect.h/2 - 10*self.scale)
+        pygame.draw.circle(self.surface,(0, 0, 0), self.SliderRect.center, self.SliderRect.w)
+        
+        self.SurfaceText = FONT.render(str(self.value), True, (255, 255, 255))
+        pos = self.rect.w/2 - self.SurfaceText.get_size()[0]/2, self.rect.h/2 - self.SurfaceText.get_size()[1]/2+10*self.scale
+        self.surface.blit(self.SurfaceText, pos)
+
+        screen.blit(self.surface, self.rect.topleft)
 
 class ClassRoundTable:
     def __init__(self, x, y, d, scale=1) -> None:

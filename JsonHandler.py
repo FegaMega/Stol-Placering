@@ -4,6 +4,9 @@ JH = JH.JsonHandler()
 def GetJson(Folder):
    return JH.JsonReader(Folder)
 
+def WriteJson(Folder, info):
+   JH.JsonWriter(Folder, info)
+
 def ReadRoom(Folder, ID, FONT, scale):
    jsonRead = JH.JsonReader(Folder)
    Room = {
@@ -39,7 +42,7 @@ def ReadRoom(Folder, ID, FONT, scale):
    if jsonRead[ID]["Tavla"]:  
       Room["Tavla"] = Objects.ClassTavla(jsonRead[ID]["Tavla"][0], jsonRead[ID]["Tavla"][1], jsonRead[ID]["Tavla"][2], jsonRead[ID]["Tavla"][3], FONT["Table"], scale["table"])
    else:
-      Room["Tavla"] = Objects.ClassTavla(100, 100, 500, 50, FONT, scale["table"])
+      Room["Tavla"] = Objects.ClassTavla(100, 100, 500, 50, FONT["Table"], scale["table"])
 
    return Room
 
