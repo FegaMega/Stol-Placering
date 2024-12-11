@@ -21,20 +21,20 @@ class ClassTable :
         screen.blit(self.surface, self.rect.topleft)
 
 class ClassButton:
-    def __init__(self, x, y, w, h, text, color=(50, 50, 50), scale=1, visualText="") -> None:
+    def __init__(self, x, y, w, h, FuncText, color=(50, 50, 50), scale=1, text="") -> None:
         self.rect = pygame.Rect((x), (y), (w*scale), (h*scale))
         self.color = color
-        self.text = text
-        if visualText != "":
+        self.FuncText = FuncText
+        if text != "":
 
-            self.visualText = visualText
+            self.text = FuncText
         else:
-            self.visualText = text            
+            self.text = FuncText            
         self.pressed = False
 
     def draw(self, screen, FONT):
         
-        self.SurfaceText = FONT.render(self.visualText, True, (255, 255, 255))
+        self.SurfaceText = FONT.render(self.text, True, (255, 255, 255))
 
         self.surface = pygame.surface.Surface((self.rect.w, self.rect.h))
         self.surface.fill(self.color)
