@@ -7,7 +7,7 @@ from pygame.locals import *
 
 import Objects
 
-import JsonHandler
+import OldJsonHandler
 
 
 
@@ -25,7 +25,7 @@ class ClassApp:
         self.FontName = "Helvetica-bold"
 
         try :
-            self.settings = JsonHandler.GetJson("data/Settings.json")
+            self.settings = OldJsonHandler.GetJson("data/Settings.json")
         except FileNotFoundError:
             s = { 
                 "RoomFile" : "data/Example-Room.json",
@@ -42,8 +42,8 @@ class ClassApp:
                     }
                 }
             }
-            JsonHandler.WriteJson("data/Settings.json", s)
-            self.settings = JsonHandler.GetJson("data/Settings.json")
+            OldJsonHandler.WriteJson("data/Settings.json", s)
+            self.settings = OldJsonHandler.GetJson("data/Settings.json")
 
         self.FontSize = 20
         self.FONT = {
@@ -80,13 +80,13 @@ class ClassApp:
 
         }
         self.GUIRoomFill()
-        json = JsonHandler.GetJson(self.settings["RoomFile"]).keys()
+        json = OldJsonHandler.GetJson(self.settings["RoomFile"]).keys()
         if json:
             self.settings["CurrentRoom"] = next(iter(json))
-            self.Room = JsonHandler.ReadRoom(self.settings["RoomFile"], self.settings["CurrentRoom"], self.FONT, self.settings["scale"])
+            self.Room = OldJsonHandler.ReadRoom(self.settings["RoomFile"], self.settings["CurrentRoom"], self.FONT, self.settings["scale"])
         else:
             
-            JsonHandler.CreateRoom(self.settings["RoomFile"], "Room1")
+            OldJsonHandler.CreateRoom(self.settings["RoomFile"], "Room1")
             self.changeRoom("Room1")
         self.mouse = Objects.ClassMouse()
         self.typingMode = [False, None]
@@ -94,25 +94,25 @@ class ClassApp:
     def GUIRoomFill(self):
         nr = 0
         self.GUI["OPENUI"] = []
-        for room in JsonHandler.GetJson(self.settings["RoomFile"]).keys():
+        for room in OldJsonHandler.GetJson(self.settings["RoomFile"]).keys():
             self.GUI["OPENUI"].append(Objects.ClassButton(self.screen.get_size()[0]/2-50, 25*nr+50, 100, 20, room, scale=self.settings["scale"]["GUI"]))
             nr += 1     
 
     def changeRoom(self, RoomID):
         self.settings["CurrentRoom"] = RoomID
-        self.Room = JsonHandler.ReadRoom(self.settings["RoomFile"], self.settings["CurrentRoom"], self.FONT, self.settings["scale"])
+        self.Room = OldJsonHandler.ReadRoom(self.settings["RoomFile"], self.settings["CurrentRoom"], self.FONT, self.settings["scale"])
 
     def saveRoom(self):
-        JsonHandler.WriteRoom(self.settings["RoomFile"], self.settings["CurrentRoom"], self.Room, self.settings["scale"])
+        OldJsonHandler.WriteRoom(self.settings["RoomFile"], self.settings["CurrentRoom"], self.Room, self.settings["scale"])
 
     def NewRoom(self, ID):
-        JsonHandler.CreateRoom(self.settings["RoomFile"], ID)
+        OldJsonHandler.CreateRoom(self.settings["RoomFile"], ID)
 
     def deleteRoom(self, ID):
-        JsonHandler.RemoveRoom(self.settings["RoomFile"], ID)
+        OldJsonHandler.RemoveRoom(self.settings["RoomFile"], ID)
     
     def renameRoom(self, ID, name):
-        JsonHandler.RenameRoom(self.settings["RoomFile"], ID, name)
+        OldJsonHandler.RenameRoom(self.settings["RoomFile"], ID, name)
 
     def events(self):
         if pygame.event.get(QUIT, False):
@@ -341,7 +341,7 @@ def main() -> int:
         app.displayUpdate()
         pygame.event.pump()
     app.saveRoom()
-    JsonHandler.WriteJson("data/Settings.json", app.settings)
+    OldJsonHandler.WriteJson("data/Settings.json", app.settings)
     pygame.quit()
     return 0
 

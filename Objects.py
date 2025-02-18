@@ -71,11 +71,15 @@ class ClassRoundTable:
         self.rect = pygame.Rect((x*scale), (y*scale), (d*scale), (d*scale))
         self.color = (0, 0, 0)
         self.diameter = d*scale
-    def draw(self, screen):
+        self.children = []
+
+    def draw(self, screen, FONT):
         self.surface = pygame.Surface((self.rect.w, self.rect.h)).convert_alpha()
         self.surface.fill((0, 0, 0, 0))
         pygame.draw.circle(self.surface, self.color, (self.diameter/2, self.diameter/2), self.diameter/2)
         screen.blit(self.surface, self.rect.topleft)
+        for child in self.children:
+            child.draw(screen, FONT)
 
 class ClassTavla : 
     def __init__(self, x, y, w, h, FONT, scale) -> None:
@@ -83,7 +87,8 @@ class ClassTavla :
         self.color = (0, 0, 0)
         self.text = "TAVLAN"
         self.SurfaceText = FONT.render(self.text, True, (255, 255, 255))
-        
+        self.children = []
+
     def draw(self, screen, FONT):
         self.SurfaceText = FONT.render(self.text, True, (255, 255, 255))
         self.surface = pygame.surface.Surface((self.rect.w, self.rect.h))
