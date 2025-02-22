@@ -9,10 +9,10 @@ def mouseCircleCollision(Ax, Ay, Bc, Bd):
 
 
 class ClassTable : 
-    def __init__(self, x, y, w, h, scale=1) -> None:
+    def __init__(self, x, y, w, h, scale=1, children=[]) -> None:
         self.rect = pygame.Rect((x*scale), (y*scale), (w*scale), (h*scale))
         self.color = (0, 0, 0)
-        
+        selt.children = children 
         
     def draw(self, screen):
         self.surface = pygame.surface.Surface((self.rect.w, self.rect.h))
@@ -67,11 +67,11 @@ class ClassButtonSlider:
         screen.blit(self.surface, self.rect.topleft)
 
 class ClassRoundTable:
-    def __init__(self, x, y, d, scale=1) -> None:
+    def __init__(self, x, y, d, scale=1, children=[]) -> None:
         self.rect = pygame.Rect((x*scale), (y*scale), (d*scale), (d*scale))
         self.color = (0, 0, 0)
         self.diameter = d*scale
-        self.children = []
+        self.children = children
 
     def draw(self, screen, FONT):
         self.surface = pygame.Surface((self.rect.w, self.rect.h)).convert_alpha()
