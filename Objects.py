@@ -6,6 +6,9 @@ def mouseCircleCollision(Ax, Ay, Bc, Bd):
     D2 = math.sqrt(Diffrence[0]**2 + Diffrence[1]**2)
     return D2 <= Bd/2
 
+def Snap(i: float, s : int) -> int:
+    return i //s *s 
+
 def GetAngle(Pos : tuple, Origin : tuple):
 
         x = (Pos[0] - Origin[0])
@@ -24,8 +27,6 @@ def GetPos(angle, radius):
             (math.cos(angle)*radius) + radius,
             (math.sin(angle)*radius) + radius
             ]
-def AngleSomething(pos, parentPos, radius):
-    return GetPos( GetAngle( pos, parentPos ) , radius )
 
 class ClassTable : 
     def __init__(self, Pos, Size, children=[], scale=1) -> None:
@@ -186,39 +187,40 @@ class ClassMouse:
         if type(self.holding[0]) == Objects.ClassTable:
             if not self.holding[1] and not self.holding[2]:
 
-                self.holding[0].rect.x = (self.pos[0] - self.holding[0].rect.w/2+gridSnapp/2) //gridSnapp *gridSnapp
-                self.holding[0].rect.y = (self.pos[1] - self.holding[0].rect.h/2+gridSnapp/2) //gridSnapp *gridSnapp
+                self.holding[0].rect.x = Snap(self.pos[0] - self.holding[0].rect.w/2+gridSnapp/2, gridSnapp)
+                self.holding[0].rect.y = Snap(self.pos[1] - self.holding[0].rect.h/2+gridSnapp/2, gridSnapp)
             
             if self.holding[1]:
-                self.holding[0].rect.h = (self.pos[1] - self.holding[0].rect.y+tableSnapp/2) //tableSnapp *tableSnapp
+                self.holding[0].rect.h = Snap(self.pos[1] - self.holding[0].rect.y+tableSnapp/2, tableSnapp)
                 if self.holding[0].rect.h <= tableSnapp:
                     self.holding[0].rect.h = tableSnapp
             
             if self.holding[2]:
-                self.holding[0].rect.w = (self.pos[0] - self.holding[0].rect.x+tableSnapp/2) //tableSnapp *tableSnapp
+                self.holding[0].rect.w = Snap(self.pos[0] - self.holding[0].rect.x+tableSnapp/2, tableSnapp)
                 if self.holding[0].rect.w <= tableSnapp:
                     self.holding[0].rect.w = tableSnapp
         if type(self.holding[0]) == Objects.ClassTavla:
             if not self.holding[1] and not self.holding[2]:
 
-                self.holding[0].rect.x = (self.pos[0] - self.holding[0].rect.w/2+gridSnapp/2) //gridSnapp *gridSnapp
-                self.holding[0].rect.y = (self.pos[1] - self.holding[0].rect.h/2+gridSnapp/2) //gridSnapp *gridSnapp
+                self.holding[0].rect.x = Snap(self.pos[0] - self.holding[0].rect.w/2+gridSnapp/2, gridSnapp)
+                self.holding[0].rect.y = Snap(self.pos[1] - self.holding[0].rect.h/2+gridSnapp/2, gridSnapp)
             
             if self.holding[1]:
-                self.holding[0].rect.h = (self.pos[1] - self.holding[0].rect.y+gridSnapp/2) //gridSnapp *gridSnapp
+                self.holding[0].rect.h = Snap(self.pos[1] - self.holding[0].rect.y+gridSnapp/2, gridSnapp)
                 if self.holding[0].rect.h <= gridSnapp:
                     self.holding[0].rect.h = gridSnapp
             
             if self.holding[2]:
-                self.holding[0].rect.w = (self.pos[0] - self.holding[0].rect.x+gridSnapp/2) //gridSnapp *gridSnapp
+                self.holding[0].rect.w = Snap(self.pos[0] - self.holding[0].rect.x+gridSnapp/2, gridSnapp)
                 if self.holding[0].rect.w <= gridSnapp:
                     self.holding[0].rect.w = gridSnapp
+
         if type(self.holding[0]) == Objects.ClassRoundTable:
             if not self.holding[1]:
-                self.holding[0].rect.x = (self.pos[0] - self.holding[0].rect.w/2+gridSnapp/2) //gridSnapp *gridSnapp
-                self.holding[0].rect.y = (self.pos[1] - self.holding[0].rect.h/2+gridSnapp/2) //gridSnapp *gridSnapp
+                self.holding[0].rect.x = Snap(self.pos[0] - self.holding[0].rect.w/2+gridSnapp/2, gridSnapp)
+                self.holding[0].rect.y = Snap(self.pos[1] - self.holding[0].rect.h/2+gridSnapp/2, gridSnapp)
             else:
-                diametercalk = (math.sqrt((self.holding[0].rect.center[0]-self.pos[0])**2 + (self.holding[0].rect.center[1]-self.pos[1])**2)*2)//gridSnapp *gridSnapp
+                diametercalk = Snap(math.sqrt((self.holding[0].rect.center[0]-self.pos[0])**2 + (self.holding[0].rect.center[1]-self.pos[1])**2)*2, gridSnapp)
                 center = self.holding[0].rect.center
                 self.holding[0].diameter = diametercalk
                 self.holding[0].rect.w = diametercalk
@@ -228,8 +230,8 @@ class ClassMouse:
 
         if type(self.holding[0]) == Objects.ClassSeat:
 
-            self.holding[0].rect.x = (self.pos[0] - self.holding[0].diameter/2+gridSnapp/2)//gridSnapp *gridSnapp
-            self.holding[0].rect.y = (self.pos[1] - self.holding[0].diameter/2+gridSnapp/2)//gridSnapp *gridSnapp
+            self.holding[0].rect.x = Snap(self.pos[0] - self.holding[0].diameter/2+gridSnapp/2, gridSnapp)
+            self.holding[0].rect.y = Snap(self.pos[1] - self.holding[0].diameter/2+gridSnapp/2, gridSnapp)
             self.holding[0].parent = None
             for table in tables:
                 if not mouseCollision(self.pos[0], self.pos[1], table.rect.x, table.rect.y, table.rect.w, table.rect.h):
@@ -237,25 +239,25 @@ class ClassMouse:
                 if self.pos[0] < table.rect.x + 15:
                     self.holding[0].rect.x = table.rect.x - self.holding[0].diameter/2
                     if table.rect.h > tableSnapp:
-                        self.holding[0].rect.y = (self.holding[0].rect.y) // tableSnapp * tableSnapp +table.rect.y%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
+                        self.holding[0].rect.y = Snap(self.holding[0].rect.y, tableSnapp) +table.rect.y%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
                     else:
                         self.holding[0].rect.y = table.rect.y + table.rect.h/2 - self.holding[0].diameter/2
                 elif self.pos[0] > table.rect.right-15:
                     self.holding[0].rect.x = table.rect.right - self.holding[0].diameter/2
                     if table.rect.h > tableSnapp:
-                        self.holding[0].rect.y = (self.holding[0].rect.y) // tableSnapp * tableSnapp +table.rect.y%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
+                        self.holding[0].rect.y = Snap(self.holding[0].rect.y, tableSnapp) +table.rect.y%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
                     else:
                         self.holding[0].rect.y = table.rect.y + table.rect.h/2 - self.holding[0].diameter/2
                 if self.pos[1] < table.rect.y + 15:
                     self.holding[0].rect.y = table.rect.y - self.holding[0].diameter/2
                     if table.rect.w > tableSnapp:
-                        self.holding[0].rect.x = (self.holding[0].rect.x) // tableSnapp * tableSnapp +table.rect.x%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
+                        self.holding[0].rect.x = Snap(self.holding[0].rect.x, tableSnapp) +table.rect.x%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
                     else:
                         self.holding[0].rect.x = table.rect.x + table.rect.w/2 - self.holding[0].diameter/2
                 elif self.pos[1] > table.rect.bottom-15:
                     self.holding[0].rect.y = table.rect.bottom - self.holding[0].diameter/2
                     if table.rect.w > tableSnapp:
-                        self.holding[0].rect.x = (self.holding[0].rect.x) // tableSnapp * tableSnapp +table.rect.x%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
+                        self.holding[0].rect.x = Snap(self.holding[0].rect.x, tableSnapp) +table.rect.x%tableSnapp + (tableSnapp-self.holding[0].diameter)/2
                     else:
                         self.holding[0].rect.x = table.rect.x + table.rect.w/2 - self.holding[0].diameter/2
                 self.holding[0].parentPos[0] = self.holding[0].rect.centerx - table.rect.x
@@ -266,13 +268,6 @@ class ClassMouse:
                 if not mouseCircleCollision(self.pos[0], self.pos[1], table.rect.center, table.diameter):
                     continue
                 if not mouseCircleCollision(self.pos[0], self.pos[1], table.rect.center, table.diameter-75):
-                    O = table.diameter * math.pi
-                    OpS = gridSnapp * math.pi*2 /3
-                    if O < OpS:
-                        spaceing = math.pi*2
-                    else:
-                        spaceing = math.pi*2 / (O/OpS)
-
                     holdingAngle = GetAngle(self.pos, table.rect.center)
                     pos = GetPos(holdingAngle, table.diameter/2)
                     self.holding[0].pos = [
