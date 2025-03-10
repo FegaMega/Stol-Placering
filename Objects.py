@@ -6,19 +6,41 @@ def mouseCircleCollision(Ax, Ay, Bc, Bd):
     D2 = math.sqrt(Diffrence[0]**2 + Diffrence[1]**2)
     return D2 <= Bd/2
 
+def GetAngle(Pos : tuple, Origin : tuple):
 
+        x = (Pos[0] - Origin[0])
+        if x == 0:
+            x = 0.00001
+        y = (Pos[1] - Origin[1])
+        Angle = math.atan2(abs(y), abs(x)) 
+        if x < 0:
+            Angle = -Angle
+            Angle-=math.radians(180)
+        if y < 0: 
+            Angle = -Angle
+        return Angle
+def GetPos(angle, radius):
+    return [
+            (math.cos(angle)*radius) + radius,
+            (math.sin(angle)*radius) + radius
+            ]
+def AngleSomething(pos, parentPos, radius):
+    return GetPos( GetAngle( pos, parentPos ) , radius )
 
 class ClassTable : 
-    def __init__(self, Pos, Size, scale=1, children=[]) -> None:
-        self.rect = pygame.Rect((Pos[0]*scale), (Pos[1]*scale), (Size[0]*scale), (Size[1]*scale))
+    def __init__(self, Pos, Size, children=[], scale=1) -> None:
+        self.rect = pygame.Rect(Pos[0] *scale, Pos[1] *scale, Size[0] *scale, Size[1] *scale)
         self.color = (0, 0, 0)
         self.children = children 
         
-    def draw(self, screen):
+    def draw(self, screen, FONT):
         self.surface = pygame.surface.Surface((self.rect.w, self.rect.h))
         self.surface.fill(self.color)
         
         screen.blit(self.surface, self.rect.topleft)
+
+        for child in self.children:
+            child.draw(screen, FONT)
 
 class ClassButton:
     def __init__(self, Pos, Size, FuncText, color=(50, 50, 50), scale=1, text="") -> None:
@@ -66,7 +88,8 @@ class ClassButtonSlider:
         screen.blit(self.surface, self.rect.topleft)
 
 class ClassRoundTable:
-    def __init__(self, Pos, d, scale=1, children=[]) -> None:
+    def __init__(self, Pos:list, d, children=[], scale=1) -> None:
+        
         self.rect = pygame.Rect((Pos[0]*scale), (Pos[1]*scale), (d*scale), (d*scale))
         self.color = (0, 0, 0)
         self.diameter = d*scale
@@ -98,29 +121,16 @@ class ClassTavla :
         screen.blit(self.surface, self.rect.topleft)
 
 class ClassSeat:
-    def __init__(self, x, y, FONT, parent=None, text="text", scale={}) -> None:
+    def __init__(self, Pos, FONT, parent=None, text="text", scale:dict={}) -> None:
         self.diameter = 40 * scale["seat"]
         self.scale = scale
         self.rect = pygame.rect.Rect(0, 0, self.diameter, self.diameter)
-        self.rect.center = [x, y]
+        self.rect.center = Pos
         if parent:
             if type(parent) == Objects.ClassTable:
                 self.parentPos = [self.rect.centerx - parent.rect.x, self.rect.centery - parent.rect.y]
-            if type(parent) == Objects.ClassRoundTable:
-                x = (self.rect.centerx - parent.rect.center[0])
-                if x == 0:
-                    x = 0.00001
-                y = (self.rect.centery - parent.rect.center[1])
-                holdingAngle = math.atan2(abs(y), abs(x)) 
-                if x < 0:
-                    holdingAngle = -holdingAngle
-                    holdingAngle-=math.radians(180)
-                if y < 0: 
-                    holdingAngle = -holdingAngle
-                holdingAngle = holdingAngle
-                self.pos = [(math.cos(holdingAngle)*(parent.diameter/2)) + parent.diameter/2,
-                            (math.sin(holdingAngle)*(parent.diameter/2)) + parent.diameter/2]
-                self.parentPos = [parent.diameter, holdingAngle]
+            elif type(parent) == Objects.ClassRoundTable:
+                self.parentPos = [parent.diameter, GetAngle(self.rect.center, self.parent.rect.center)]
         else:
             self.parentPos = [0, 0]
         self.colorOG = (175, 175, 175)
@@ -139,15 +149,9 @@ class ClassSeat:
                 elif self.parentPos[1] > self.parent.rect.h:
                     self.parent = None
             if type(self.parent) == ClassRoundTable:
-                O = self.parent.diameter * math.pi
-                OpS = 25 * math.pi*2 /3
-                if O < OpS:
-                    spacing = math.pi*2
-                else:
-                    spacing = math.pi*2 / (O/OpS)
-                
-                self.rect.centerx = math.cos(self.parentPos[1]) * (self.parent.diameter/2) + self.parent.rect.center[0]
-                self.rect.centery = math.sin(self.parentPos[1]) * (self.parent.diameter/2) + self.parent.rect.center[1]
+                Pos = GetPos(self.parentPos[1], self.parent.diameter/2)
+                self.rect.centerx = Pos[0] + self.parent.rect.center[0]
+                self.rect.centery = Pos[1] + self.parent.rect.center[1]
                 
 
         self.SurfaceText : pygame.Surface = FONT.render(self.text, True, (255, 255, 255))
@@ -268,22 +272,13 @@ class ClassMouse:
                         spaceing = math.pi*2
                     else:
                         spaceing = math.pi*2 / (O/OpS)
-                    x = (self.pos[0] - table.rect.center[0])
-                    if x == 0:
-                        x = 0.00001
-                    y = (self.pos[1] - table.rect.center[1])
-                    holdingAngle = math.atan2(abs(y), abs(x)) 
-                    
-                    
-                    if x < 0:
-                        holdingAngle = -holdingAngle
-                        holdingAngle-=math.radians(180)
-                    if y < 0: 
-                        holdingAngle = -holdingAngle
-                    holdingAngle = holdingAngle 
-                        
-                    self.holding[0].pos = [(math.cos(holdingAngle)*(table.diameter/2)) + table.diameter/2,
-                                           (math.sin(holdingAngle)*(table.diameter/2)) + table.diameter/2]
+
+                    holdingAngle = GetAngle(self.pos, table.rect.center)
+                    pos = GetPos(holdingAngle, table.diameter/2)
+                    self.holding[0].pos = [
+                        pos[0] + table.diameter/2,
+                        pos[1] + table.diameter/2
+                    ] 
                     
                     self.holding[0].parent = table
                     self.holding[0].parentPos = [table.diameter, holdingAngle]

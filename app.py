@@ -7,7 +7,7 @@ from pygame.locals import *
 
 import Objects
 
-import OldJsonHandler
+import JsonHandler
 
 
 
@@ -25,7 +25,7 @@ class ClassApp:
         self.FontName = "Helvetica-bold"
 
         try :
-            self.settings = OldJsonHandler.GetJson("data/Settings.json")
+            self.settings = JsonHandler.GetJson("data/Settings.json")
         except FileNotFoundError:
             s = { 
                 "RoomFile" : "data/Example-Room.json",
@@ -42,13 +42,13 @@ class ClassApp:
                     }
                 }
             }
-            OldJsonHandler.WriteJson("data/Settings.json", s)
-            self.settings = OldJsonHandler.GetJson("data/Settings.json")
+            JsonHandler.WriteJson("data/Settings.json", s)
+            self.settings = JsonHandler.GetJson("data/Settings.json")
 
         self.FontSize = 20
         self.FONT = {
             "GUI" : pygame.font.SysFont(self.FontName, self.FontSize    *self.settings["scale"]["Font"]["GUI"]      *self.settings["scale"]["GUI"]),
-            "Table" : pygame.font.SysFont(self.FontName, self.FontSize  *self.settings["scale"]["Font"]["Table"]    *self.settings["scale"]["table"]),
+            "Tavla" : pygame.font.SysFont(self.FontName, self.FontSize  *self.settings["scale"]["Font"]["Table"]    *self.settings["scale"]["table"]),
             "Seat" : pygame.font.SysFont(self.FontName, self.FontSize   *self.settings["scale"]["Font"]["Seat"]     *self.settings["scale"]["seat"])
         }
         self.running = True
@@ -58,35 +58,34 @@ class ClassApp:
         self.UIstate = None
         self.GUI = {
             "EscapeUI" : [
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-145, 100, 50, "RENAME", scale=self.settings["scale"]["GUI"]), 
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-85, 100, 50, "OPEN", scale=self.settings["scale"]["GUI"]), 
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-25, 100, 50, "NEW", scale=self.settings["scale"]["GUI"]),
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+35, 100, 50, "DELETE", scale=self.settings["scale"]["GUI"]),
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+95, 100, 50, "Export as PDF", scale=self.settings["scale"]["GUI"]),
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+155, 100, 50, "SETTINGS", scale=self.settings["scale"]["GUI"])
+                Objects.ClassButton((self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-145), (100, 50), "RENAME", scale=self.settings["scale"]["GUI"]), 
+                Objects.ClassButton((self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-85), (100, 50), "OPEN", scale=self.settings["scale"]["GUI"]), 
+                Objects.ClassButton((self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-25), (100, 50), "NEW", scale=self.settings["scale"]["GUI"]),
+                Objects.ClassButton((self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+35), (100, 50), "DELETE", scale=self.settings["scale"]["GUI"]),
+                Objects.ClassButton((self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+95), (100, 50), "Export as PDF", scale=self.settings["scale"]["GUI"]),
+                Objects.ClassButton((self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+155), (100, 50), "SETTINGS", scale=self.settings["scale"]["GUI"])
             ],
             "OPENUI" : [],
             "NEWUI" : [
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+5, 100, 50, "", scale=self.settings["scale"]["GUI"]), 
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-45, 100, 50, "Name:", scale=self.settings["scale"]["GUI"])
+                Objects.ClassButton((self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+5), (100, 50), "", scale=self.settings["scale"]["GUI"]), 
+                Objects.ClassButton((self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-45), (100, 50), "Name:", scale=self.settings["scale"]["GUI"])
             ],
             "RENAMEUI" : [
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+5, 100, 50, "", scale=self.settings["scale"]["GUI"]), 
-                Objects.ClassButton(self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-45, 100, 50, "Name:", scale=self.settings["scale"]["GUI"])
+                Objects.ClassButton((self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2+5), (100, 50), "", scale=self.settings["scale"]["GUI"]), 
+                Objects.ClassButton((self.screen.get_size()[0]/2-50, self.screen.get_size()[1]/2-45), (100, 50), "Name:", scale=self.settings["scale"]["GUI"])
             ],
             "SETTINGSUI" : [
-                Objects.ClassButtonSlider(self.screen.get_size()[0]/2, self.screen.get_size()[1]/2 - 85, 100, 50, 1, 3)
+                Objects.ClassButtonSlider((self.screen.get_size()[0]/2, self.screen.get_size()[1]/2 - 85), (100, 50), 1, 3)
             ]
 
         }
         self.GUIRoomFill()
-        json = OldJsonHandler.GetJson(self.settings["RoomFile"]).keys()
+        json = JsonHandler.GetJson(self.settings["RoomFile"]).keys()
         if json:
             self.settings["CurrentRoom"] = next(iter(json))
-            self.Room = OldJsonHandler.ReadRoom(self.settings["RoomFile"], self.settings["CurrentRoom"], self.FONT, self.settings["scale"])
+            self.Room = JsonHandler.ReadRoom(self.settings["RoomFile"], self.settings["CurrentRoom"], self.FONT, self.settings["scale"])
         else:
-            
-            OldJsonHandler.CreateRoom(self.settings["RoomFile"], "Room1")
+            JsonHandler.CreateRoom(self.settings["RoomFile"], "Room1")
             self.changeRoom("Room1")
         self.mouse = Objects.ClassMouse()
         self.typingMode = [False, None]
@@ -94,25 +93,25 @@ class ClassApp:
     def GUIRoomFill(self):
         nr = 0
         self.GUI["OPENUI"] = []
-        for room in OldJsonHandler.GetJson(self.settings["RoomFile"]).keys():
-            self.GUI["OPENUI"].append(Objects.ClassButton(self.screen.get_size()[0]/2-50, 25*nr+50, 100, 20, room, scale=self.settings["scale"]["GUI"]))
+        for room in JsonHandler.GetJson(self.settings["RoomFile"]).keys():
+            self.GUI["OPENUI"].append(Objects.ClassButton((self.screen.get_size()[0]/2-50, 25*nr+50), (100, 20), room, scale=self.settings["scale"]["GUI"]))
             nr += 1     
 
     def changeRoom(self, RoomID):
         self.settings["CurrentRoom"] = RoomID
-        self.Room = OldJsonHandler.ReadRoom(self.settings["RoomFile"], self.settings["CurrentRoom"], self.FONT, self.settings["scale"])
+        self.Room = JsonHandler.ReadRoom(self.settings["RoomFile"], self.settings["CurrentRoom"], self.FONT, self.settings["scale"])
 
     def saveRoom(self):
-        OldJsonHandler.WriteRoom(self.settings["RoomFile"], self.settings["CurrentRoom"], self.Room, self.settings["scale"])
+        JsonHandler.WriteRoom(self.settings["RoomFile"], self.settings["CurrentRoom"], self.Room, self.settings["scale"])
 
     def NewRoom(self, ID):
-        OldJsonHandler.CreateRoom(self.settings["RoomFile"], ID)
+        JsonHandler.CreateRoom(self.settings["RoomFile"], ID)
 
     def deleteRoom(self, ID):
-        OldJsonHandler.RemoveRoom(self.settings["RoomFile"], ID)
+        JsonHandler.RemoveRoom(self.settings["RoomFile"], ID)
     
     def renameRoom(self, ID, name):
-        OldJsonHandler.RenameRoom(self.settings["RoomFile"], ID, name)
+        JsonHandler.RenameRoom(self.settings["RoomFile"], ID, name)
 
     def events(self):
         if pygame.event.get(QUIT, False):
@@ -155,11 +154,11 @@ class ClassApp:
                     self.typingMode[1].text += event.unicode
 
     def createAnotherSeat (self):
-        self.Room["Seats"].append(Objects.ClassSeat(self.mouse.pos[0], self.mouse.pos[1], self.FONT["Seat"], scale=self.settings["scale"]))
+        self.Room["Seats"].append(Objects.ClassSeat((self.mouse.pos[0], self.mouse.pos[1]), self.FONT["Seat"], scale=self.settings["scale"]))
     def createAnotherTable (self):
-        self.Room["Tables"].append(Objects.ClassTable(self.mouse.pos[0], self.mouse.pos[1], 100, 100, self.settings["scale"]["table"]))
+        self.Room["Tables"].append(Objects.ClassTable((self.mouse.pos[0], self.mouse.pos[1]), (100, 100), scale=self.settings["scale"]["table"]))
     def createAnotherRoundTable (self):
-        self.Room["RoundTables"].append(Objects.ClassRoundTable(self.mouse.pos[0], self.mouse.pos[1], 150, self.settings["scale"]["table"]))
+        self.Room["RoundTables"].append(Objects.ClassRoundTable((self.mouse.pos[0], self.mouse.pos[1]), 150, scale=self.settings["scale"]["table"]))
 
     def deleteASeat(self):
         for seat in self.Room["Seats"]:
@@ -308,12 +307,12 @@ class ClassApp:
     def draw(self):
         self.screen.fill((100, 100, 100))
         for table in self.Room["Tables"]:
-            table.draw(self.screen)
+            table.draw(self.screen, self.FONT["Seat"])
         for table in self.Room["RoundTables"]:
-            table.draw(self.screen)
+            table.draw(self.screen, self.FONT["Seat"])
         for seat in self.Room["Seats"]:
             seat.draw(self.screen, self.FONT["Seat"])        
-        self.Room["Tavla"].draw(self.screen, self.FONT["Table"])
+        self.Room["Tavla"].draw(self.screen, self.FONT["Tavla"])
         if (self.UIstate == "Escape" or 
             self.UIstate == "OPEN" or 
             self.UIstate == "NEW" or
@@ -341,7 +340,7 @@ def main() -> int:
         app.displayUpdate()
         pygame.event.pump()
     app.saveRoom()
-    OldJsonHandler.WriteJson("data/Settings.json", app.settings)
+    JsonHandler.WriteJson("data/Settings.json", app.settings)
     pygame.quit()
     return 0
 
