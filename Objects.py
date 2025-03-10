@@ -9,10 +9,10 @@ def mouseCircleCollision(Ax, Ay, Bc, Bd):
 
 
 class ClassTable : 
-    def __init__(self, x, y, w, h, scale=1, children=[]) -> None:
-        self.rect = pygame.Rect((x*scale), (y*scale), (w*scale), (h*scale))
+    def __init__(self, Pos, Size, scale=1, children=[]) -> None:
+        self.rect = pygame.Rect((Pos[0]*scale), (Pos[1]*scale), (Size[0]*scale), (Size[1]*scale))
         self.color = (0, 0, 0)
-        selt.children = children 
+        self.children = children 
         
     def draw(self, screen):
         self.surface = pygame.surface.Surface((self.rect.w, self.rect.h))
@@ -21,12 +21,11 @@ class ClassTable :
         screen.blit(self.surface, self.rect.topleft)
 
 class ClassButton:
-    def __init__(self, x, y, w, h, FuncText, color=(50, 50, 50), scale=1, text="") -> None:
-        self.rect = pygame.Rect((x), (y), (w*scale), (h*scale))
+    def __init__(self, Pos, Size, FuncText, color=(50, 50, 50), scale=1, text="") -> None:
+        self.rect = pygame.Rect((Pos[0]*scale), (Pos[1]*scale), (Size[0]*scale), (Size[1]*scale))
         self.color = color
         self.FuncText = FuncText
         if text != "":
-
             self.text = FuncText
         else:
             self.text = FuncText            
@@ -44,8 +43,8 @@ class ClassButton:
         screen.blit(self.surface, self.rect.topleft)
 
 class ClassButtonSlider:
-    def __init__(self, x, y, w, h, value, maxvalue, color=(50, 50, 50), scale=1) -> None:
-        self.rect = pygame.Rect((x), (y), (w*scale), (h*scale))
+    def __init__(self, Pos, Size, value, maxvalue, color=(50, 50, 50), scale=1) -> None:
+        self.rect = pygame.Rect((Pos[0]*scale), (Pos[1]*scale), (Size[0]*scale), (Size[1]*scale))
         self.color = color
         self.value = value         
         self.maxvalue = maxvalue
@@ -67,8 +66,8 @@ class ClassButtonSlider:
         screen.blit(self.surface, self.rect.topleft)
 
 class ClassRoundTable:
-    def __init__(self, x, y, d, scale=1, children=[]) -> None:
-        self.rect = pygame.Rect((x*scale), (y*scale), (d*scale), (d*scale))
+    def __init__(self, Pos, d, scale=1, children=[]) -> None:
+        self.rect = pygame.Rect((Pos[0]*scale), (Pos[1]*scale), (d*scale), (d*scale))
         self.color = (0, 0, 0)
         self.diameter = d*scale
         self.children = children
@@ -82,8 +81,8 @@ class ClassRoundTable:
             child.draw(screen, FONT)
 
 class ClassTavla : 
-    def __init__(self, x, y, w, h, FONT, scale) -> None:
-        self.rect = pygame.Rect((x*scale), (y*scale), (w*scale), (h*scale))
+    def __init__(self, Pos, Size, FONT, scale) -> None:
+        self.rect = pygame.Rect((Pos[0]*scale), (Pos[1]*scale), (Size[0]*scale), (Size[1]*scale))
         self.color = (0, 0, 0)
         self.text = "TAVLAN"
         self.SurfaceText = FONT.render(self.text, True, (255, 255, 255))

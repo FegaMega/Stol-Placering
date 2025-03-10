@@ -1,0 +1,6 @@
+how to use pyinstaller
+mac
+in the directory of main.py write "python3 -m PyInstaller main.py"
+
+windows
+in the directory of main.py  write "pyinstaller main.py
