@@ -11,11 +11,11 @@ import JsonHandler
 
 
 
-def mouseCollision(Ax, Ay, Bx, By, Bwidth, Bheight):
-    return (Ax >= Bx and Ax <= Bx + Bwidth) and (Ay >= By and Ay <= Ay <= By + Bheight)
+def mouseCollision(A, B, Bs):
+    return (A[0] >= B[0] and A[0] <= B[0] + Bs[0]) and (A[1] >= B[1] and A[1] <= B[1] + Bs[1])
 
-def mouseCircleCollision(Ax, Ay, Bc, Bd):
-    Diffrence = [Bc[0]-Ax, Bc[1]-Ay]
+def mouseCircleCollision(A, Bc, Bd):
+    Diffrence = [Bc[0]-A[0], Bc[1]-A[1]]
     D2 = math.sqrt(Diffrence[0]**2 + Diffrence[1]**2)
     return D2 <= Bd/2
 
@@ -119,24 +119,26 @@ class ClassApp:
         if self.typingMode[0]:
             return
         for event in pygame.event.get(KEYDOWN, False):
-            if event.key == K_c:
-                self.createAnotherSeat()
-            if event.key == K_r:
-                self.createAnotherRoundTable()
-            if event.key == K_t:
-                self.createAnotherTable()
-            if event.key == K_d or event.key == K_DELETE:
-                if self.deleteASeat():
-                    continue
-                elif self.deleteATable():
-                    continue
-                self.deleteARoundTable()
-            if event.key == K_ESCAPE:
-                if self.UIstate != "Escape":
-                    self.UIstate = "Escape"
-                else: 
-                    self.UIstate = None
+            match event.key:
+                case pygame.K_c:
+                    self.Room["Seat"].append(self.create("Seat"))
+                case pygame.K_r:
+                    self.Room["RoundTable"].append(self.create("RoundTable"))
+                case pygame.K_t:
+                    self.Room["Table"].append(self.create("Table"))
+                case pygame.K_d:
+                    if self.deleteASeat():
+                        continue
+                    elif self.deleteATable():
+                        continue
+                    self.deleteARoundTable()
+                case pygame.K_ESCAPE:
+                    if self.UIstate != "Escape":
+                        self.UIstate = "Escape"
+                    else: 
+                        self.UIstate = None
         self.ButtonCheck()
+
     def variableUpdate(self):
         self.mouse.update(self.Room["Tables"], self.Room["RoundTables"], self.settings["scale"])
         
@@ -153,28 +155,74 @@ class ClassApp:
                 else:
                     self.typingMode[1].text += event.unicode
 
-    def createAnotherSeat (self):
-        self.Room["Seats"].append(Objects.ClassSeat((self.mouse.pos[0], self.mouse.pos[1]), self.FONT["Seat"], scale=self.settings["scale"]))
-    def createAnotherTable (self):
-        self.Room["Tables"].append(Objects.ClassTable((self.mouse.pos[0], self.mouse.pos[1]), (100, 100), scale=self.settings["scale"]["table"]))
-    def createAnotherRoundTable (self):
-        self.Room["RoundTables"].append(Objects.ClassRoundTable((self.mouse.pos[0], self.mouse.pos[1]), 150, scale=self.settings["scale"]["table"]))
+    def create(self, flag:str) -> object:
+        match flag:
+            case "Seat":
+                return Objects.ClassSeat((self.mouse.pos[0], self.mouse.pos[1]), self.FONT["Seat"], scale=self.settings["scale"])
+            case "Table":
+                return Objects.ClassTable((self.mouse.pos[0], self.mouse.pos[1]), (100, 100), scale=self.settings["scale"]["table"])
+            case "RoundTabel":
+                return Objects.ClassRoundTable((self.mouse.pos[0], self.mouse.pos[1]), 150, scale=self.settings["scale"]["table"])
+            case _:
+                print("Func create() in app.py Flag Invalid", flag)
+        
+    def getHover(self) -> object:
 
+        # Loose seats first
+        for seat in self.Room["Seats"]:
+            if mouseCircleCollision(self.mouse.pos, seat.rect.center, seat.diameter):
+                return seat
+            
+        # Tables and their children
+        for table in self.Room["Tables"]:
+            #Table outer diameter
+            outerDiameter = table.rect.size + 25*self.scale["seat"]
+
+            if mouseCollision(self.mouse.pos, table.rect.topleft, outerDiameter):
+
+                # Check children of table ( type : seats )  
+                for seat in table.children:
+                    if mouseCircleCollision(self.mouse.pos, seat.rect.center, seat.diameter):
+                        return seat
+                    
+                # Check for the actual table 
+                if mouseCollision(self.mouse.pos, table.rect.topleft, table.rect.size):
+                    return table
+        
+        # Round tables and their children
+        for table in self.Room["RoundTables"]:
+            #Table outer diameter
+            outerSize = [
+                table.rect.width + 25*self.scale["seat"], 
+                table.rect.height + 25*self.scale["seat"]
+                ]
+            
+            if mouseCircleCollision(self.mouse.pos, table.rect.topleft, outerSize):
+
+                # Check children of table ( type : seats )  
+                for seat in table.children:
+                    if mouseCircleCollision(self.mouse.pos, seat.rect.center, seat.diameter):
+                        return seat
+                    
+                # Check for the actual table 
+                if mouseCircleCollision(self.mouse.pos, table.rect.topleft, table.diameter):
+                    return table
+        return None
     def deleteASeat(self):
         for seat in self.Room["Seats"]:
-            if mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], [seat.rect.x+seat.diameter/2, seat.rect.y+seat.diameter/2], seat.diameter):
+            if mouseCircleCollision(self.mouse.pos, [seat.rect.x+seat.diameter/2, seat.rect.y+seat.diameter/2], seat.diameter):
                 self.Room["Seats"].pop(self.Room["Seats"].index(seat))
                 return 1
         return 0
     def deleteATable(self):
         for table in self.Room["Tables"]:
-            if mouseCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.x, table.rect.y, table.rect.w, table.rect.w):
+            if mouseCollision(self.mouse.pos, table.rect.topleft, table.rect.size):
                 self.Room["Tables"].pop(self.Room["Tables"].index(table))
                 return 1
         return 0
     def deleteARoundTable(self):
         for table in self.Room["RoundTables"]:
-            if mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.center, table.diameter):
+            if mouseCircleCollision(self.mouse.pos, table.rect.center, table.diameter):
                 self.Room["RoundTables"].pop(self.Room["RoundTables"].index(table))
                 return 1
         return 0
@@ -184,12 +232,11 @@ class ClassApp:
             return [False, None]
         e = pygame.event.get(MOUSEBUTTONDOWN, False)
         for event in e:
-            
+            #Check for left mouse button
             if event.button == 1:
 
                 for seat in self.Room["Seats"]:
-
-                    if mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], [seat.rect.x+seat.diameter/2, seat.rect.y+seat.diameter/2], seat.diameter):
+                    if mouseCircleCollision(self.mouse.pos, [seat.rect.x+seat.diameter/2, seat.rect.y+seat.diameter/2], seat.diameter):
                         return [True, seat]
                     
                 return [False, None]
@@ -221,23 +268,23 @@ class ClassApp:
         
         if not pygame.mouse.get_pressed(3)[0]:
             return [None, None, None]
-        if not mouseCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.x, table.rect.y, table.rect.width, table.rect.height):
+        if not mouseCollision(self.mouse.pos, table.rect.topleft, table.rect.size):
             return self.mouse.holding
         if self.mouse.holding[0] != None:
             return self.mouse.holding
         return [table, 
-                mouseCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.x, table.rect.bottom - 10, table.rect.w, 10), 
-                mouseCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.right-10, table.rect.y, 10, table.rect.h)]
+                mouseCollision(self.mouse.pos, [table.rect.x, table.rect.bottom - 10], [table.rect.w, 10]), 
+                mouseCollision(self.mouse.pos, [table.rect.right-10, table.rect.y], [10, table.rect.h])]
         
     def followRoundCheck(self, table : Objects.ClassRoundTable) -> list:
         if not pygame.mouse.get_pressed(3)[0]:
             return [None, None, None]
         if self.mouse.holding[0] != None:
             return self.mouse.holding
-        if not mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.center, table.diameter):
+        if not mouseCircleCollision(self.mouse.pos, table.rect.center, table.diameter):
             return self.mouse.holding
         return [table,
-                not mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], table.rect.center, table.diameter-10),
+                not mouseCircleCollision(self.mouse.pos, table.rect.center, table.diameter-10),
                 None]
 
     def SeatFollowCheck(self, seat) -> list:
@@ -246,7 +293,7 @@ class ClassApp:
             return [None, None, None]
         if self.mouse.holding[0] != None:
             return self.mouse.holding
-        if not mouseCircleCollision(self.mouse.pos[0], self.mouse.pos[1], [seat.rect.x+seat.diameter/2, seat.rect.y+seat.diameter/2], seat.diameter):
+        if not mouseCircleCollision(self.mouse.pos, [seat.rect.x+seat.diameter/2, seat.rect.y+seat.diameter/2], seat.diameter):
             return self.mouse.holding
 
         return [seat, None, None]
@@ -256,7 +303,7 @@ class ClassApp:
             for button in self.GUI["EscapeUI"]:
                 if not pygame.mouse.get_pressed(3)[0]:
                     continue
-                if not mouseCollision(self.mouse.pos[0], self.mouse.pos[1], button.rect.x, button.rect.y, button.rect.w, button.rect.h):
+                if not mouseCollision(self.mouse.pos, button.rect.topleft, button.rect.size):
                     continue
                 else:
                     self.UIstate = button.text
@@ -265,7 +312,7 @@ class ClassApp:
             for button in self.GUI["OPENUI"]:
                 if not pygame.mouse.get_pressed(3)[0]:
                     continue
-                if not mouseCollision(self.mouse.pos[0], self.mouse.pos[1], button.rect.x, button.rect.y, button.rect.w, button.rect.h):
+                if not mouseCollision(self.mouse.pos, button.rect.topleft, button.rect.size):
                     continue
                 else:
                     self.saveRoom()
