@@ -1,13 +1,6 @@
-import JH, Objects
-JH = JH.JsonHandler()
+import JH, Old.OldObjects as OldObjects
 
-def GetJson(Folder) -> dict:
-   return JH.JsonReader(Folder)
-
-def WriteJson(Folder, info):
-   JH.JsonWriter(Folder, info)
-
-def ReadRoom(Folder, ID, FONT, scale) -> dict:
+def getRoom(Folder, ID, FONT, scale) -> dict:
    jsonRead = JH.JsonReader(Folder)
    Room = {
       "Tables" : [],
@@ -27,7 +20,8 @@ def ReadRoom(Folder, ID, FONT, scale) -> dict:
       for table in tables:
          if table["Type"] == "Rectangular":
             Room["Tables"].append(
-               Objects.ClassTable(
+               OldObjects.ClassTable(
+                  table["Type"],
                   table["Pos"], 
                   table["Size"], 
                   table["Children"], 
@@ -36,7 +30,8 @@ def ReadRoom(Folder, ID, FONT, scale) -> dict:
                )
          elif table["Type"] == "Round":
             Room["RoundTables"].append(
-               Objects.ClassRoundTable(
+               OldObjects.ClassRoundTable(
+                  table["Type"],
                   table["Pos"], 
                   table["Size"], 
                   table["Children"], 
@@ -45,11 +40,11 @@ def ReadRoom(Folder, ID, FONT, scale) -> dict:
                )
    if seats != []:
       for seat in seats:
-         Room["Seats"].append(Objects.ClassSeat(seat["Pos"], FONT["Seat"], scale=scale))
+         Room["Seats"].append(OldObjects.ClassSeat(seat["Pos"], FONT["Seat"], scale=scale))
    if tavla:
-      Room["Tavla"] = Objects.ClassTavla(tavla["Pos"], tavla["Size"], FONT["Tavla"], scale["table"])
+      Room["Tavla"] = OldObjects.ClassTavla(tavla["Pos"], tavla["Size"], FONT["Tavla"], scale["table"])
    else:
-      Room["Tavla"] = Objects.ClassTavla((0, 0), (200, 25), FONT["Tavla"], scale["table"])
+      Room["Tavla"] = OldObjects.ClassTavla((0, 0), (200, 25), FONT["Tavla"], scale["table"])
 
    return Room
 
@@ -63,7 +58,7 @@ def SaveSeat(seat, scale):
    }
    return S
 
-def WriteRoom(Folder, ID, Room, scale):
+def saveRoom(Folder, ID, Room, scale):
    #Variables
    JsonWrite = JH.JsonReader(Folder)
    jRoom = {
@@ -74,42 +69,37 @@ def WriteRoom(Folder, ID, Room, scale):
 
    #Tables
    for table in Room["Tables"]:
-      T = { 
-         "Type" : "Rectangular",
-         "Pos": 
-         [
-            table.rect.x/scale["table"], 
-            table.rect.y/scale["table"], 
-         ],
-         "Size" : 
-         [
-            table.rect.w/scale["table"], 
-            table.rect.h/scale["table"],
-         ],
-         "Children" : []
-         }
-      #Children
-      for child in table.children:
-         C = SaveSeat(child, scale["table"])
-         T["Children"].append(C)
-      jRoom["Tables"].append(T)
+      match table.Type:
 
-   #Roundtables
-   for table in Room["RoundTables"]:
-      T = { 
-         "Type" : "Round",
-         "Pos": 
-         [
-            table.rect.x/scale["table"], 
-            table.rect.y/scale["table"], 
-         ],
-         "Size" : table.diameter/scale["table"],
-         "Children" : []
-      }
-      #Children
-      for child in table.children:
-         C = SaveSeat(child, scale["table"])
-         T["Children"].append(C)
+         case "Rectangular":
+            T = { 
+               "Type" : "Rectangular",
+               "Pos": 
+               [
+                  table.rect.x/scale["table"], 
+                  table.rect.y/scale["table"], 
+               ],
+               "Size" : 
+               [
+                  table.rect.w/scale["table"], 
+                  table.rect.h/scale["table"]
+               ],
+               "Children" : table.children
+               }
+            jRoom["Tables"].append(T)
+         
+         case "Round":
+            T = { 
+               "Type" : "Round",
+               "Pos": 
+               [
+                  table.rect.x/scale["table"], 
+                  table.rect.y/scale["table"] 
+               ],
+               "Size" : table.diameter/scale["table"],
+               "Children" : table.children
+            }
+
       jRoom["Tables"].append(T)
 
 
