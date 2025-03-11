@@ -40,11 +40,11 @@ def getRoom(Folder, ID, FONT, scale) -> dict:
                )
    if seats != []:
       for seat in seats:
-         Room["Seats"].append(OldObjects.ClassSeat(seat["Pos"], FONT["Seat"], scale=scale))
+         Room["Seats"].append(OldObjects.ClassSeat(seat["Pos"], FONT, scale=scale))
    if tavla:
-      Room["Tavla"] = OldObjects.ClassTavla(tavla["Pos"], tavla["Size"], FONT["Tavla"], scale["table"])
+      Room["Tavla"] = OldObjects.ClassTavla(tavla["Pos"], tavla["Size"], FONT, scale["table"])
    else:
-      Room["Tavla"] = OldObjects.ClassTavla((0, 0), (200, 25), FONT["Tavla"], scale["table"])
+      Room["Tavla"] = OldObjects.ClassTavla((0, 0), (200, 25), FONT, scale["table"])
 
    return Room
 

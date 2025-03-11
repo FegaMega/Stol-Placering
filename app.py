@@ -9,6 +9,7 @@ class App:
       pygame.init()
       self.setting = SettingsHandler.getSettings()
       self.running = True
+      self.FontName = "Helvetica-bold"
       self.screen = {
          "Display Port" : pygame.display.set_mode([700, 700]),
          "Display Size" : pygame.display.get_window_size(),
@@ -16,8 +17,8 @@ class App:
       }
 
       self.Room = RoomHandler.ReadRoom()
-
       
+
    def event(self):
       if pygame.event.get( pygame.QUIT ):
          self.running = False
