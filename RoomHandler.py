@@ -1,4 +1,13 @@
-import JH, Objects as Objects
+import JH, Objects as Objects, math, pygame
+
+def mouseCollision(A, B:pygame.Rect):
+    return (A[0] >= B.x and A[0] <= B.x + B.width) and (A[1] >= B.y and A[1] <= B.y + B.height)
+
+def mouseCircleCollision(A, Bc, Bd):
+    Diffrence = [Bc[0]-A[0], Bc[1]-A[1]]
+    D2 = math.sqrt(Diffrence[0]**2 + Diffrence[1]**2)
+    return D2 <= Bd/2
+
 
 def getRoom(Folder, ID, FONT, scale) -> dict:
    jsonRead = JH.JsonReader(Folder)
@@ -16,19 +25,27 @@ def getRoom(Folder, ID, FONT, scale) -> dict:
    People = jsonRead[ID]["People"]
    tavla = jsonRead[ID]["Tavla"]
 
-   if tables != []: 
+   if tables != []:
+
       for table in tables:
-         if table["Type"] == "Rectangular":
-            Room["Tables"].append(
-               Objects.Table(
-                  table["Type"],
-                  table["Pos"], 
-                  table["Size"], 
-                  table["Children"], 
-                  scale["table"]
-                  )
-               )
-   
+      
+         match table["Type"]: 
+      
+            case "Rectangular":
+               T = Objects.Table(
+                     table["Type"],
+                     table["Pos"], 
+                     table["Size"], 
+                     table["Seats"], 
+                     scale["table"]
+                     )
+               def func(pos):
+                  return mouseCollision(pos, T.rect)
+               T.getMouseTouching = func
+               Room["Tables"].append(T)
+            case _:
+               print("Error! Table could not be loaded\nTable: ", table, "\nTable index: ", tables.index(table), '\nType not recogninsed!')
+      
    if People != []:
       for person in People:
          Room["People"].append(Objects.Person(person["Pos"], person["Name"], FONT, scale))
@@ -46,7 +63,7 @@ def Saveperson(person, scale):
          person.rect.centerx/scale, 
          person.rect.centery/scale
          ],
-      "Text" : person.text
+      "Name" : person.text
    }
    return S
 
@@ -61,7 +78,7 @@ def saveRoom(Folder, ID, Room, scale):
 
    #Tables
    for table in Room["Tables"]:
-      match table.Type:
+      match table.type:
 
          case "Rectangular":
             T = { 
@@ -76,7 +93,7 @@ def saveRoom(Folder, ID, Room, scale):
                   table.rect.w/scale["table"], 
                   table.rect.h/scale["table"]
                ],
-               "Children" : table.children
+               "Seats" : table.seats
                }
             jRoom["Tables"].append(T)
          
@@ -89,7 +106,7 @@ def saveRoom(Folder, ID, Room, scale):
                   table.rect.y/scale["table"] 
                ],
                "Size" : table.diameter/scale["table"],
-               "Children" : table.children
+               "Seats" : table.seats
             }
 
       jRoom["Tables"].append(T)
@@ -99,7 +116,7 @@ def saveRoom(Folder, ID, Room, scale):
 
    #People without parent table
    for person in Room["People"]:
-      T = Saveperson(person, scale["person"])
+      T = Saveperson(person, scale["People"])
       jRoom["People"].append(T)
 
    JsonWrite[ID]["People"] = jRoom["People"]
