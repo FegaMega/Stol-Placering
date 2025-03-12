@@ -13,7 +13,7 @@ def getSettings():
                "table" : 1,
                "GUI" : 1,
                "Font" : {
-                  "Seat": 1,
+                  "People": 1,
                   "Table": 1,
                   "GUI": 1
                }

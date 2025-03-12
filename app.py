@@ -16,7 +16,7 @@ class App:
          "FPS" : 60
       }
 
-      self.Room = RoomHandler.ReadRoom()
+      self.Room = RoomHandler.getRoom(self.setting["RoomFile"], self.setting["CurrentRoom"], self.FontName, self.setting["scale"])
       
 
    def event(self):
@@ -26,6 +26,11 @@ class App:
    def update(self):
       return
    def render(self):
+      for person in self.Room["epople"]:
+         person.draw(self.screen["Display Port"])
+      for table in self.Room["Tables"]:
+         table.draw(self.screen["Display Port"])
+      self.Room["Tavla"].draw(self.screen["Display Port"])
       pygame.display.update()
       return
    def clean(self):

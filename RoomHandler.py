@@ -1,11 +1,11 @@
-import JH, Old.OldObjects as OldObjects
+import JH, Objects as Objects
 
 def getRoom(Folder, ID, FONT, scale) -> dict:
    jsonRead = JH.JsonReader(Folder)
    Room = {
       "Tables" : [],
       "RoundTables" : [],
-      "Seats" : [],
+      "People" : [],
       "Tavla" : None
    }
    if jsonRead == []:
@@ -13,14 +13,14 @@ def getRoom(Folder, ID, FONT, scale) -> dict:
       return None
    
    tables = jsonRead[ID]["Tables"]
-   seats = jsonRead[ID]["Seats"]
+   People = jsonRead[ID]["People"]
    tavla = jsonRead[ID]["Tavla"]
 
    if tables != []: 
       for table in tables:
          if table["Type"] == "Rectangular":
             Room["Tables"].append(
-               OldObjects.ClassTable(
+               Objects.Table(
                   table["Type"],
                   table["Pos"], 
                   table["Size"], 
@@ -28,33 +28,25 @@ def getRoom(Folder, ID, FONT, scale) -> dict:
                   scale["table"]
                   )
                )
-         elif table["Type"] == "Round":
-            Room["RoundTables"].append(
-               OldObjects.ClassRoundTable(
-                  table["Type"],
-                  table["Pos"], 
-                  table["Size"], 
-                  table["Children"], 
-                  scale["table"]
-                  )
-               )
-   if seats != []:
-      for seat in seats:
-         Room["Seats"].append(OldObjects.ClassSeat(seat["Pos"], FONT, scale=scale))
+   
+   if People != []:
+      for person in People:
+         Room["People"].append(Objects.Person(person["Pos"], person["Name"], FONT, scale))
+   
    if tavla:
-      Room["Tavla"] = OldObjects.ClassTavla(tavla["Pos"], tavla["Size"], FONT, scale["table"])
+      Room["Tavla"] = Objects.Tavla(tavla["Pos"], tavla["Size"], FONT, scale["table"])
    else:
-      Room["Tavla"] = OldObjects.ClassTavla((0, 0), (200, 25), FONT, scale["table"])
+      Room["Tavla"] = Objects.Tavla((0, 0), (200, 25), FONT, scale["table"])
 
    return Room
 
-def SaveSeat(seat, scale):
+def Saveperson(person, scale):
    S = {
       "Pos" : [
-         seat.rect.centerx/scale, 
-         seat.rect.centery/scale
+         person.rect.centerx/scale, 
+         person.rect.centery/scale
          ],
-      "Text" : seat.text
+      "Text" : person.text
    }
    return S
 
@@ -63,7 +55,7 @@ def saveRoom(Folder, ID, Room, scale):
    JsonWrite = JH.JsonReader(Folder)
    jRoom = {
       "Tables" : [],
-      "Seats" : [],
+      "People" : [],
       "Tavla" : None  
    }
 
@@ -105,12 +97,12 @@ def saveRoom(Folder, ID, Room, scale):
 
    JsonWrite[ID]["Tables"] = jRoom["Tables"]
 
-   #seats without parent table
-   for seat in Room["Seats"]:
-      T = SaveSeat(seat, scale["seat"])
-      jRoom["Seats"].append(T)
+   #People without parent table
+   for person in Room["People"]:
+      T = Saveperson(person, scale["person"])
+      jRoom["People"].append(T)
 
-   JsonWrite[ID]["Seats"] = jRoom["Seats"]
+   JsonWrite[ID]["People"] = jRoom["People"]
    
    #Whiteboard
    JsonWrite[ID]["Tavla"] = {
@@ -137,7 +129,7 @@ def CreateRoom(Folder, ID) -> dict:
    Room =  {
       "Tables" : [],
       "RoundTables" : [],
-      "Seats" : [],
+      "People" : [],
       "Tavla" : None
    }
    json[ID] = Room
