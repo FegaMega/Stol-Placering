@@ -1,4 +1,13 @@
-import pygame
+import pygame, math
+
+#Simple copy paste functions
+def mouseCollision(A, B:pygame.Rect):
+    return (A[0] >= B.x and A[0] <= B.x + B.width) and (A[1] >= B.y and A[1] <= B.y + B.height)
+
+def mouseCircleCollision(A, Bc, Bd):
+    Diffrence = [Bc[0]-A[0], Bc[1]-A[1]]
+    D2 = math.sqrt(Diffrence[0]**2 + Diffrence[1]**2)
+    return D2 <= Bd/2
 
 class Table:
 
@@ -9,6 +18,7 @@ class Table:
 
       self.color = (0, 0, 0)
 
+      #It's a Function pointer!
       #Function that will be created depending on the type of tabel when it's created
       #Will return boolean depending on if the mouse if above the table or not 
       #Inputs are the position of the cursor as a tuple of length 2 
@@ -28,7 +38,7 @@ class Table:
       # ] 
       self.seats = []
 
-   def draw(self, screen: pygame.surface.Surface):
+   def draw(self, screen : pygame.Surface):
 
       match self.type:
 
@@ -47,6 +57,8 @@ class Person:
       self.text : str = text
       self.Font : pygame.font.Font = pygame.font.SysFont(FONT, 20*scale["Font"]["People"])
       self.name : pygame.Surface = self.Font.render(text, True, (255, 255, 255, 255)).convert_alpha()
+      
+      self.color = (0, 0, 0)
 
       self.rect = pygame.Rect(pos[0], pos[1], self.name.get_size()[0] + 10*scale["People"], self.name.get_size()[1] + 10*scale["People"])
 
@@ -57,7 +69,7 @@ class Person:
       surface.fill((0, 0, 0, 0))
       r = surface.get_rect()
 
-      pygame.draw.rect(surface, (0, 0, 0, 255), r, border_radius=self.outlineRadius)
+      pygame.draw.rect(surface, self.color, r, border_radius=self.outlineRadius)
 
       surface.blit(self.name, [ r.centerx - self.name.get_size()[0]/2, r.centery - self.name.get_size()[1]/2 ])
 
@@ -79,13 +91,16 @@ class Tavla:
 
       self.color = (0, 0, 0)
 
-      self.Font = pygame.font.SysFont(FONT, 20*scale)
+      self.Font = pygame.font.SysFont(FONT, 30*scale)
       self.text : pygame.Surface = self.Font.render("Tavla", True, (255, 255, 255))
 
+   def getMouseTouching(self, pos):
+      return mouseCollision(pos, self.rect)
 
    def draw(self, screen:pygame.surface.Surface):
       self.surface = pygame.surface.Surface(self.rect.size)
+      self.surface.fill(self.color)
 
-      self.surface.blit(self.text, [ self.rect.centerx - self.text.get_size()[0]/2, self.rect.centery - self.text.get_size()[1]/2 ])
+      self.surface.blit(self.text, [ self.surface.get_size()[0]/2 - self.text.get_size()[0]/2, self.surface.get_size()[1]/2 - self.text.get_size()[1]/2 ])
 
       screen.blit(self.surface, self.rect.topleft)

@@ -19,7 +19,7 @@ class App:
       self.running = True
       self.FontName = "Helvetica-bold"
       self.screen = {
-         "Display Port" : pygame.display.set_mode([700, 700]),
+         "Display Port" : pygame.display.set_mode([700, 700], vsync=1),
          "Display Size" : pygame.display.get_window_size(),
          "FPS" : 60
       }
@@ -40,7 +40,17 @@ class App:
    
 
    def update(self):
-      self.getHover()
+
+      #Resets changes incase the mouse is holding another object
+      if self.mouseHolding:
+         self.mouseHolding.color = (0, 0, 0)
+      
+      self.mouseHolding = self.getHolding()
+
+      #Turns the held object green 
+      if self.mouseHolding:
+         self.mouseHolding.color = (0, 255, 0)
+      
       return
    
 
@@ -73,17 +83,31 @@ class App:
       return
 
 #Daughter Functions
-   def getHover(self):
+   def getHolding(self) -> object:
+
+      #Left mouse button
+      if not pygame.mouse.get_pressed()[0]:
+         return None
+      
+      #If already holding something
+      if self.mouseHolding:
+         return self.mouseHolding
+      
+      return self.getHover()
+
+   def getHover(self) -> object:
 
       for person in self.Room["People"]:
          
-         if mouseCollision(pygame.mouse.get_pos(), person.rect):
-            return person
+         if mouseCollision(pygame.mouse.get_pos(), person.rect): return person
          
       for table in self.Room["Tables"]:
 
-         if table.getMouseTouching(pygame.mouse.get_pos()):
-            return table 
+         if table.getMouseTouching(pygame.mouse.get_pos()): return table 
+      
+      if self.Room["Tavla"].getMouseTouching(pygame.mouse.get_pos()): return self.Room["Tavla"]
+
+      return None
          
 def main():#
    app = App()
