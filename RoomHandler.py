@@ -1,12 +1,5 @@
 import JH, Objects as Objects, math, pygame
-
-def mouseCollision(A, B:pygame.Rect):
-    return (A[0] >= B.x and A[0] <= B.x + B.width) and (A[1] >= B.y and A[1] <= B.y + B.height)
-
-def mouseCircleCollision(A, Bc, Bd):
-    Diffrence = [Bc[0]-A[0], Bc[1]-A[1]]
-    D2 = math.sqrt(Diffrence[0]**2 + Diffrence[1]**2)
-    return D2 <= Bd/2
+from GeneralFuntions import *
 
 
 def getRoom(Folder, ID, FONT, scale) -> dict:
@@ -95,7 +88,6 @@ def saveRoom(Folder, ID, Room, scale):
                ],
                "Seats" : table.seats
                }
-            jRoom["Tables"].append(T)
          
          case "Round":
             T = { 

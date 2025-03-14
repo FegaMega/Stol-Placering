@@ -1,13 +1,5 @@
 import pygame, math
-
-#Simple copy paste functions
-def mouseCollision(A, B:pygame.Rect):
-    return (A[0] >= B.x and A[0] <= B.x + B.width) and (A[1] >= B.y and A[1] <= B.y + B.height)
-
-def mouseCircleCollision(A, Bc, Bd):
-    Diffrence = [Bc[0]-A[0], Bc[1]-A[1]]
-    D2 = math.sqrt(Diffrence[0]**2 + Diffrence[1]**2)
-    return D2 <= Bd/2
+from GeneralFuntions import *
 
 class Table:
 
@@ -60,8 +52,8 @@ class Person:
       
       self.color = (0, 0, 0)
 
-      self.rect = pygame.Rect(pos[0], pos[1], self.name.get_size()[0] + 10*scale["People"], self.name.get_size()[1] + 10*scale["People"])
-
+      self.rect = pygame.Rect(0, 0, self.name.get_size()[0] + 10*scale["People"], self.name.get_size()[1] + 10*scale["People"])
+      self.rect.center = pos
 
    def draw(self, screen:pygame.Surface):   
 
@@ -77,6 +69,8 @@ class Person:
 
 
    def changeName(self, text:str, scale):
+
+      self.text = text
 
       self.name : pygame.Surface = self.Font.render(text, True, (255, 255, 255, 255)).convert_alpha()
 

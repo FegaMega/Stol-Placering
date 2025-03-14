@@ -3,21 +3,21 @@ import pygame
 import RoomHandler
 import SettingsHandler
 import math
-
-def mouseCollision(A, B:pygame.Rect):
-    return (A[-1] >= B.x and A[0] <= B.x + B.width) and (A[1] >= B.y and A[1] <= B.y + B.height)
-
-def mouseCircleCollision(A, Bc, Bd):
-    Diffrence = [Bc[0]-A[0], Bc[1]-A[1]]
-    D2 = math.sqrt(Diffrence[0]**2 + Diffrence[1]**2)
-    return D2 <= Bd/2
+import Objects
+from GeneralFuntions import *
 
 class App:
+
    def __init__(self):
+
       pygame.init()
+
+      self.running = True 
+
       self.setting = SettingsHandler.getSettings()
-      self.running = True
+
       self.FontName = "Helvetica-bold"
+
       self.screen = {
          "Display Port" : pygame.display.set_mode([700, 700], vsync=1),
          "Display Size" : pygame.display.get_window_size(),
@@ -26,15 +26,20 @@ class App:
    
       #Object the operator i holding, if None there is no object being held 
       self.mouseHolding = None
+      self.mouseSelected = None
 
       self.Room = RoomHandler.getRoom(self.setting["RoomFile"], self.setting["CurrentRoom"], self.FontName, self.setting["scale"])      
 
 
-#Main Functions
-   def event(self):
+   #Main Functions
+   def Event(self):
+      self.event:list = pygame.event.get()
+      
+      for event in self.event:
 
-      if pygame.event.get( pygame.QUIT ):
-         self.running = False
+         if event.type == pygame.QUIT:
+            
+            self.running = False
 
       return
    
@@ -42,15 +47,26 @@ class App:
    def update(self):
 
       #Resets changes incase the mouse is holding another object
-      if self.mouseHolding:
-         self.mouseHolding.color = (0, 0, 0)
       
       self.mouseHolding = self.getHolding()
 
-      #Turns the held object green 
       if self.mouseHolding:
-         self.mouseHolding.color = (0, 255, 0)
+         self.mouseHolding.rect.center = Snap ( pygame.mouse.get_pos(), 5 )
       
+      self.mouseSelected = self.getSelected()
+
+      if self.mouseSelected.__class__ == Objects.Person:
+         
+         print(self.mouseSelected.text)
+         
+         text = self.getTextEvent(self.mouseSelected.text)
+         
+         if text == 0:
+            self.mouseSelected = None
+            return
+         
+         self.mouseSelected.changeName( text, self.setting["scale"] )
+
       return
    
 
@@ -82,7 +98,9 @@ class App:
 
       return
 
-#Daughter Functions
+
+
+   #Daughter Functions
    def getHolding(self) -> object:
 
       #Left mouse button
@@ -95,25 +113,59 @@ class App:
       
       return self.getHover()
 
-   def getHover(self) -> object:
 
-      for person in self.Room["People"]:
-         
-         if mouseCollision(pygame.mouse.get_pos(), person.rect): return person
-         
-      for table in self.Room["Tables"]:
-
-         if table.getMouseTouching(pygame.mouse.get_pos()): return table 
+   def getSelected(self) -> object:
       
-      if self.Room["Tavla"].getMouseTouching(pygame.mouse.get_pos()): return self.Room["Tavla"]
+      #Deselects if left mouse button is pressed
+      if pygame.mouse.get_pressed()[0]:
+         return None
+      
+      if self.mouseSelected:
+         return self.mouseSelected
+
+      if pygame.mouse.get_pressed()[2]:
+         return self.getHover() 
 
       return None
+      
+
+   def getHover(self) -> object:
+      mousePos = pygame.mouse.get_pos()
+      #Moves backwards so the top most person get picked first
+      for x in range(len(self.Room["People"])-1, -1, -1):
          
+         person = self.Room["People"][x]
+
+         if mouseCollision(mousePos, person.rect): return person
+
+      #Moves backwards so the top most table get picked first   
+      for x in range(len(self.Room["Tables"])-1, -1, -1):
+                  
+         if self.Room["Tables"][x].getMouseTouching(mousePos): return self.Room["Tables"][x] 
+      
+      if self.Room["Tavla"].getMouseTouching(mousePos): return self.Room["Tavla"]
+
+      return None
+
+   def getTextEvent(self, text:str):
+      for event in self.event:
+         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+               return 0
+            elif event.key == pygame.K_BACKSPACE:
+               text = text[:-1]
+            else:
+               text += event.unicode
+      return text
+
+
+
+
 def main():#
    app = App()
    while app.running:
-      app.event()
       app.update()
+      app.Event()
       app.render() 
       app.fpsLimit()
    app.clean()
