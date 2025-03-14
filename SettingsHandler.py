@@ -1,8 +1,8 @@
-import JH
+from GeneralFuntions import * 
 
 def getSettings():
    try :
-      settings = JH.JsonReader("data/Settings.json")
+      settings = JsonReader("data/Settings.json")
    except FileNotFoundError:
       s = { 
             "RoomFile" : "data/Example-Room.json",
@@ -19,9 +19,9 @@ def getSettings():
                }
             }
       }
-      JH.JsonWriter("data/Settings.json", s)
-      settings = JH.JsonReader("data/Settings.json")
+      JsonWriter("data/Settings.json", s)
+      settings = JsonReader("data/Settings.json")
    return settings
 
 def saveSettings(settings : dict):
-   JH.JsonWriter("data/Settings.json", settings)
+   JsonWriter("data/Settings.json", settings)

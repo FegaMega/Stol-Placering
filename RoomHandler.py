@@ -1,9 +1,15 @@
-import JH, Objects as Objects, math, pygame
+import Objects as Objects, math, pygame
 from GeneralFuntions import *
 
+def RectangleMouseCollision(pos, T):
+   if mouseCollision(pos, T.rect):
+      if not mouseCollision(pos, pygame.Rect(T.rect.left,T.rect.top,T.rect.width - T.EdgeSize,T.rect.height - T.EdgeSize)):   
+         return True, "Edge"
+      return True, "Normal"
+   return False, ""
 
 def getRoom(Folder, ID, FONT, scale) -> dict:
-   jsonRead = JH.JsonReader(Folder)
+   jsonRead = JsonReader(Folder)
    Room = {
       "Tables" : [],
       "RoundTables" : [],
@@ -23,7 +29,7 @@ def getRoom(Folder, ID, FONT, scale) -> dict:
       for table in tables:
       
          match table["Type"]: 
-      
+            
             case "Rectangular":
                T = Objects.Table(
                      table["Type"],
@@ -32,9 +38,10 @@ def getRoom(Folder, ID, FONT, scale) -> dict:
                      table["Seats"], 
                      scale["table"]
                      )
-               def func(pos):
-                  return mouseCollision(pos, T.rect)
-               T.getMouseTouching = func
+               T.EdgeSize = 10*scale["table"]
+
+               T.hitboxFunc = RectangleMouseCollision
+
                Room["Tables"].append(T)
             case _:
                print("Error! Table could not be loaded\nTable: ", table, "\nTable index: ", tables.index(table), '\nType not recogninsed!')
@@ -62,7 +69,7 @@ def Saveperson(person, scale):
 
 def saveRoom(Folder, ID, Room, scale):
    #Variables
-   JsonWrite = JH.JsonReader(Folder)
+   JsonWrite = JsonReader(Folder)
    jRoom = {
       "Tables" : [],
       "People" : [],
@@ -128,12 +135,12 @@ def saveRoom(Folder, ID, Room, scale):
    }
 
 
-   JH.JsonWriter(Folder, JsonWrite)
+   JsonWriter(Folder, JsonWrite)
    
    return
 
 def CreateRoom(Folder, ID) -> dict:
-   json = JH.JsonReader(Folder)
+   json = JsonReader(Folder)
    
    Room =  {
       "Tables" : [],
@@ -142,17 +149,17 @@ def CreateRoom(Folder, ID) -> dict:
       "Tavla" : None
    }
    json[ID] = Room
-   JH.JsonWriter(Folder, json)
+   JsonWriter(Folder, json)
    return Room
 def RemoveRoom(Folder, ID):
    
-   json = JH.JsonReader(Folder)
+   json = JsonReader(Folder)
    json.pop(ID)
-   JH.JsonWriter(Folder, json)
+   JsonWriter(Folder, json)
 
 def RenameRoom(Folder, ID, Name):
-   json = JH.JsonReader(Folder)
-   json2 = JH.JsonReader(Folder)
+   json = JsonReader(Folder)
+   json2 = JsonReader(Folder)
    json.pop(ID)
    json[Name] = json2[ID]
-   JH.JsonWriter(Folder, json)
+   JsonWriter(Folder, json)

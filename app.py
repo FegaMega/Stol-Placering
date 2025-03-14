@@ -16,17 +16,20 @@ class App:
 
       self.setting = SettingsHandler.getSettings()
 
-      self.FontName = "Helvetica-bold"
+      self.FontName = "Helvetica"
 
       self.screen = {
-         "Display Port" : pygame.display.set_mode([700, 700], vsync=1),
+         "Display Port" : pygame.display.set_mode([1000, 1000], vsync=1),
          "Display Size" : pygame.display.get_window_size(),
          "FPS" : 60
       }
    
       #Object the operator i holding, if None there is no object being held 
-      self.mouseHolding = None
-      self.mouseSelected = None
+      #First index is the object 
+      #Second index is a flag
+      self.cursorIMG = pygame.SYSTEM_CURSOR_ARROW
+      self.mouseHolding = [None, "None"]
+      self.mouseSelected = [None, ""]
 
       self.Room = RoomHandler.getRoom(self.setting["RoomFile"], self.setting["CurrentRoom"], self.FontName, self.setting["scale"])      
 
@@ -45,42 +48,28 @@ class App:
    
 
    def update(self):
+      pygame.mouse.set_cursor(self.cursorIMG)
+      self.cursorIMG = pygame.SYSTEM_CURSOR_ARROW
 
-      #Resets changes incase the mouse is holding another object
-      
-      self.mouseHolding = self.getHolding()
+      self.handleHeldObject()
 
-      if self.mouseHolding:
-         self.mouseHolding.rect.center = Snap ( pygame.mouse.get_pos(), 5 )
-      
-      self.mouseSelected = self.getSelected()
-
-      if self.mouseSelected.__class__ == Objects.Person:
-         
-         print(self.mouseSelected.text)
-         
-         text = self.getTextEvent(self.mouseSelected.text)
-         
-         if text == 0:
-            self.mouseSelected = None
-            return
-         
-         self.mouseSelected.changeName( text, self.setting["scale"] )
+      self.handleSelectedObject()
+            
 
       return
    
 
    def render(self):
 
-      self.screen["Display Port"].fill((255, 255, 255))
-
-      for person in self.Room["People"]:
-         person.draw(self.screen["Display Port"])
+      self.screen["Display Port"].fill((100, 100, 100))
 
       for table in self.Room["Tables"]:
          table.draw(self.screen["Display Port"])
 
       self.Room["Tavla"].draw(self.screen["Display Port"])
+      
+      for person in self.Room["People"]:
+         person.draw(self.screen["Display Port"])
 
       pygame.display.update()
 
@@ -99,53 +88,77 @@ class App:
       return
 
 
-
    #Daughter Functions
    def getHolding(self) -> object:
 
+      hover = self.getHover()
+      
+      #Nice Cursor change for ease of use 
+      if hover[0] != None:
+
+         if hover[1] == "Edge":
+            self.cursorIMG = pygame.SYSTEM_CURSOR_SIZENWSE
+
+         else:
+            self.cursorIMG = pygame.SYSTEM_CURSOR_SIZEALL      
+      
       #Left mouse button
       if not pygame.mouse.get_pressed()[0]:
-         return None
+         return None, ""
       
       #If already holding something
-      if self.mouseHolding:
+      if self.mouseHolding[0] != None:
+
+         if self.mouseHolding[1] == "Edge":
+            self.cursorIMG = pygame.SYSTEM_CURSOR_SIZENWSE
+         else:
+            self.cursorIMG = pygame.SYSTEM_CURSOR_SIZEALL      
+   
          return self.mouseHolding
-      
-      return self.getHover()
+
+      return hover
 
 
    def getSelected(self) -> object:
-      
+
       #Deselects if left mouse button is pressed
       if pygame.mouse.get_pressed()[0]:
          return None
       
-      if self.mouseSelected:
+      #If something already selected
+      if self.mouseSelected != None:
          return self.mouseSelected
 
+      #Select if right mouse button is pressed
       if pygame.mouse.get_pressed()[2]:
-         return self.getHover() 
+         return self.getHover()[0]
 
       return None
       
 
-   def getHover(self) -> object:
+   def getHover(self) -> list:
       mousePos = pygame.mouse.get_pos()
       #Moves backwards so the top most person get picked first
       for x in range(len(self.Room["People"])-1, -1, -1):
          
          person = self.Room["People"][x]
 
-         if mouseCollision(mousePos, person.rect): return person
+         if mouseCollision(mousePos, person.rect): return person, "Normal"
 
       #Moves backwards so the top most table get picked first   
       for x in range(len(self.Room["Tables"])-1, -1, -1):
-                  
-         if self.Room["Tables"][x].getMouseTouching(mousePos): return self.Room["Tables"][x] 
-      
-      if self.Room["Tavla"].getMouseTouching(mousePos): return self.Room["Tavla"]
 
-      return None
+         result, flag = self.Room["Tables"][x].getMouseTouching(mousePos)
+
+         if result:
+
+            return self.Room["Tables"][x], flag 
+      
+      result, flag = self.Room["Tavla"].getMouseTouching(mousePos)
+      if result: return self.Room["Tavla"], flag
+
+      return [None, ""]
+
 
    def getTextEvent(self, text:str):
       for event in self.event:
@@ -159,9 +172,44 @@ class App:
       return text
 
 
+   def handleHeldObject(self):
+
+      #[Held Object, Flag]
+      self.mouseHolding = self.getHolding()
+
+      match self.mouseHolding[1]:
+
+         case "Normal":
+            self.mouseHolding[0].rect.center = Snap ( pygame.mouse.get_pos(), 5 )
+
+         case "Edge":
+            self.mouseHolding[0].rect.width = Snap( max( pygame.mouse.get_pos()[0] - self.mouseHolding[0].rect.x, 25), 5 )
+            self.mouseHolding[0].rect.height = Snap( max(pygame.mouse.get_pos()[1] - self.mouseHolding[0].rect.y, 25), 5 )
 
 
-def main():#
+   def handleSelectedObject(self):
+      #Reset Variables
+      if self.mouseSelected.__class__ == Objects.Person:
+         self.mouseSelected.selected = False
+
+      #Get Object
+      self.mouseSelected = self.getSelected()
+
+      #Change Variables
+      if self.mouseSelected.__class__ == Objects.Person:
+         
+         self.mouseSelected.selected = True
+         
+         text = self.getTextEvent(self.mouseSelected.text)
+         
+         if text == 0:
+            self.mouseSelected = (None, "")
+            return
+         
+         self.mouseSelected.changeName( text, self.setting["scale"] )
+
+
+def main():
    app = App()
    while app.running:
       app.update()
@@ -169,5 +217,7 @@ def main():#
       app.render() 
       app.fpsLimit()
    app.clean()
+
+
 
 main()

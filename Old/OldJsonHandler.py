@@ -1,5 +1,5 @@
-import JH, Old.OldObjects as OldObjects
-JH = JH.JsonHandler()
+import JH, OldObjects as OldObjects
+
 
 def GetJson(Folder):
    return JH.JsonReader(Folder)

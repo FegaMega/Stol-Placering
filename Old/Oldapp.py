@@ -5,9 +5,9 @@ import os
 import pygame
 from pygame.locals import *
 
-import Old.OldObjects as OldObjects
+import OldObjects as OldObjects
 
-import RoomHandler
+import OldJsonHandler as RoomHandler 
 
 
 
@@ -25,10 +25,10 @@ class ClassApp:
         self.FontName = "Helvetica-bold"
 
         try :
-            self.settings = RoomHandler.GetJson("data/Settings.json")
+            self.settings = RoomHandler.GetJson("../data/Settings.json")
         except FileNotFoundError:
             s = { 
-                "RoomFile" : "data/Example-Room.json",
+                "RoomFile" : "../data/Example-Room.json",
                 "CurrentRoom" : 0,
                 "ScreenSize" : [700, 700],
                 "scale": {
@@ -42,9 +42,9 @@ class ClassApp:
                     }
                 }
             }
-            RoomHandler.WriteJson("data/Settings.json", s)
-            self.settings = RoomHandler.GetJson("data/Settings.json")
-
+            RoomHandler.WriteJson("../data/Settings.json", s)
+            self.settings = RoomHandler.GetJson("../data/Settings.json")
+            self.settings["RoomFile"] = "../"+self.settings["RoomFile"]
         self.FontSize = 20
         self.FONT = {
             "GUI" : pygame.font.SysFont(self.FontName, self.FontSize    *self.settings["scale"]["Font"]["GUI"]      *self.settings["scale"]["GUI"]),
@@ -54,7 +54,7 @@ class ClassApp:
         self.running = True
         self.screen = pygame.display.set_mode( self.settings["ScreenSize"], vsync=1 )
         pygame.display.set_caption("Stol Placering av David Smidebrant")
-        pygame.display.set_icon(pygame.image.load("data/Icon.png"))
+        pygame.display.set_icon(pygame.image.load("../data/Icon.png"))
         self.UIstate = None
         self.GUI = {
             "EscapeUI" : [

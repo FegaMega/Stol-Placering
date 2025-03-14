@@ -1,4 +1,4 @@
-import pygame, Old.OldObjects as OldObjects, math
+import pygame, math
 
 def mouseCollision(Ax, Ay, Bx, By, Bwidth, Bheight):
     return (Ax >= Bx and Ax <= Bx + Bwidth) and (Ay >= By and Ay <= Ay <= By + Bheight)
@@ -155,9 +155,9 @@ class ClassSeat:
         self.rect = pygame.rect.Rect(0, 0, self.diameter, self.diameter)
         self.rect.center = Pos
         if parent:
-            if type(parent) == OldObjects.ClassTable:
+            if type(parent) == ClassTable:
                 self.parentPos = [self.rect.centerx - parent.rect.x, self.rect.centery - parent.rect.y]
-            elif type(parent) == OldObjects.ClassRoundTable:
+            elif type(parent) == ClassRoundTable:
                 self.parentPos = [parent.diameter, GetAngle(self.rect.center, self.parent.rect.center)]
         else:
             self.parentPos = [0, 0]
@@ -216,7 +216,7 @@ class ClassMouse:
             return
         tableSnapp = 50*scale["table"]
         gridSnapp = 25*scale["table"]
-        if type(self.holding[0]) == OldObjects.ClassTable:
+        if type(self.holding[0]) == ClassTable:
             if not self.holding[1] and not self.holding[2]:
 
                 self.holding[0].rect.x = Snap(self.pos[0] - self.holding[0].rect.w/2+gridSnapp/2, gridSnapp)
@@ -231,7 +231,7 @@ class ClassMouse:
                 self.holding[0].rect.w = Snap(self.pos[0] - self.holding[0].rect.x+tableSnapp/2, tableSnapp)
                 if self.holding[0].rect.w <= tableSnapp:
                     self.holding[0].rect.w = tableSnapp
-        if type(self.holding[0]) == OldObjects.ClassTavla:
+        if type(self.holding[0]) == ClassTavla:
             if not self.holding[1] and not self.holding[2]:
 
                 self.holding[0].rect.x = Snap(self.pos[0] - self.holding[0].rect.w/2+gridSnapp/2, gridSnapp)
@@ -247,7 +247,7 @@ class ClassMouse:
                 if self.holding[0].rect.w <= gridSnapp:
                     self.holding[0].rect.w = gridSnapp
 
-        if type(self.holding[0]) == OldObjects.ClassRoundTable:
+        if type(self.holding[0]) == ClassRoundTable:
             if not self.holding[1]:
                 self.holding[0].rect.x = Snap(self.pos[0] - self.holding[0].rect.w/2+gridSnapp/2, gridSnapp)
                 self.holding[0].rect.y = Snap(self.pos[1] - self.holding[0].rect.h/2+gridSnapp/2, gridSnapp)
@@ -260,7 +260,7 @@ class ClassMouse:
                 self.holding[0].rect.center = center
 
 
-        if type(self.holding[0]) == OldObjects.ClassSeat:
+        if type(self.holding[0]) == ClassSeat:
 
             self.holding[0].rect.x = Snap(self.pos[0] - self.holding[0].diameter/2+gridSnapp/2, gridSnapp)
             self.holding[0].rect.y = Snap(self.pos[1] - self.holding[0].diameter/2+gridSnapp/2, gridSnapp)
