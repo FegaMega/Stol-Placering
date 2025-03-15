@@ -2,10 +2,15 @@ import Objects as Objects, math, pygame
 from GeneralFuntions import *
 
 def RectangleMouseCollision(pos, T):
+   
    if mouseCollision(pos, T.rect):
+    
       if not mouseCollision(pos, pygame.Rect(T.rect.left,T.rect.top,T.rect.width - T.EdgeSize,T.rect.height - T.EdgeSize)):   
+    
          return True, "Edge"
+    
       return True, "Normal"
+   
    return False, ""
 
 def getRoom(Folder, ID, FONT, scale) -> dict:
@@ -52,12 +57,14 @@ def getRoom(Folder, ID, FONT, scale) -> dict:
    
    if tavla:
       Room["Tavla"] = Objects.Tavla(tavla["Pos"], tavla["Size"], FONT, scale["table"])
+   
    else:
       Room["Tavla"] = Objects.Tavla((0, 0), (200, 25), FONT, scale["table"])
 
    return Room
 
 def Saveperson(person, scale):
+  
    S = {
       "Pos" : [
          person.rect.centerx/scale, 
@@ -65,6 +72,7 @@ def Saveperson(person, scale):
          ],
       "Name" : person.text
    }
+  
    return S
 
 def saveRoom(Folder, ID, Room, scale):
@@ -115,7 +123,9 @@ def saveRoom(Folder, ID, Room, scale):
 
    #People without parent table
    for person in Room["People"]:
+      
       T = Saveperson(person, scale["People"])
+      
       jRoom["People"].append(T)
 
    JsonWrite[ID]["People"] = jRoom["People"]
@@ -140,6 +150,7 @@ def saveRoom(Folder, ID, Room, scale):
    return
 
 def CreateRoom(Folder, ID) -> dict:
+
    json = JsonReader(Folder)
    
    Room =  {
@@ -148,18 +159,28 @@ def CreateRoom(Folder, ID) -> dict:
       "People" : [],
       "Tavla" : None
    }
+
    json[ID] = Room
+
    JsonWriter(Folder, json)
+
    return Room
 def RemoveRoom(Folder, ID):
    
    json = JsonReader(Folder)
+
    json.pop(ID)
+   
    JsonWriter(Folder, json)
 
 def RenameRoom(Folder, ID, Name):
+
    json = JsonReader(Folder)
+
    json2 = JsonReader(Folder)
+
    json.pop(ID)
+
    json[Name] = json2[ID]
+
    JsonWriter(Folder, json)

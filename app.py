@@ -29,7 +29,8 @@ class App:
       #Second index is a flag
       self.cursorIMG = pygame.SYSTEM_CURSOR_ARROW
       self.mouseHolding = [None, "None"]
-      self.mouseSelected = [None, ""]
+      self.mouseSelected = None
+      self.mouseSelectedMode = ""
 
       self.Room = RoomHandler.getRoom(self.setting["RoomFile"], self.setting["CurrentRoom"], self.FontName, self.setting["scale"])      
 
@@ -189,24 +190,34 @@ class App:
 
    def handleSelectedObject(self):
       #Reset Variables
+      
       if self.mouseSelected.__class__ == Objects.Person:
          self.mouseSelected.selected = False
 
       #Get Object
       self.mouseSelected = self.getSelected()
 
-      #Change Variables
       if self.mouseSelected.__class__ == Objects.Person:
          
          self.mouseSelected.selected = True
          
-         text = self.getTextEvent(self.mouseSelected.text)
-         
-         if text == 0:
-            self.mouseSelected = (None, "")
-            return
-         
-         self.mouseSelected.changeName( text, self.setting["scale"] )
+         match self.mouseSelectedMode:
+
+            case "Menu":
+               
+               return
+
+            case "Rename":
+            #Change Variables            
+               text = self.getTextEvent(self.mouseSelected.text)
+               
+               if text == 0:
+                  
+                  self.mouseSelected = (None, "")
+
+                  return
+               
+               self.mouseSelected.changeName( text, self.setting["scale"] )
 
 
 def main():
