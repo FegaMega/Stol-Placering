@@ -11,7 +11,7 @@ def mouseCollision(A, B:pygame.Rect):
 
 class app:
    def __init__(self):
-      self.Scene = self.getScene()
+      self.Room = self.getScene()
       self.mouseHolding = [None, ""]
       self.mouseSelected = None
       self.cursorIMG = pygame.SYSTEM_CURSOR_ARROW
@@ -21,12 +21,13 @@ class app:
 
    def getHover(self) -> list:
       mousePos = pygame.mouse.get_pos()
-      #Moves backwards so the top most person get picked first
-      for x in range(len(self.Scene["People"])-1, -1, -1):
-         
-         transform = manager.getComponent(self.Scene["People"][x], TransformComponent)
 
-         if mouseCollision(mousePos, transform.rect): return [self.Scene["People"][x], "Normal"]
+      #Moves backwards so the top most person get picked first
+      for x in range(len(self.Room["People"])-1, -1, -1):
+         
+         transform = manager.getComponent(self.Room["People"][x], TransformComponent)
+
+         if mouseCollision(mousePos, transform.rect): return [self.Room["People"][x], "Normal"]
 
    # #Moves backwards so the top most table get picked first   
    #  for x in range(len(Scene["Tables"])-1, -1, -1):
@@ -60,6 +61,7 @@ class app:
 
          if self.mouseHolding[1] == "Edge":
             self.cursorIMG = pygame.SYSTEM_CURSOR_SIZENWSE
+
          else:
             self.cursorIMG = pygame.SYSTEM_CURSOR_SIZEALL      
 
@@ -83,7 +85,6 @@ class app:
          return self.getHover()[0]
 
 
-
    def getScene(self):
       #Placeholder function
       
@@ -91,6 +92,7 @@ class app:
          "People" : [],
          "Tables" : []
       }
+
       for i in range (0, 5):   
          t = manager.newEntity()
          rect = pygame.Rect(100*i, 100, 50,  50)
@@ -106,7 +108,9 @@ class app:
    
 App = app()
 while App.running:
+
    App.Event = pygame.event.get()
+   
    for event in App.Event:
       if event.type == pygame.QUIT:
          App.running = False
@@ -117,19 +121,27 @@ while App.running:
    App.screen.fill((255, 255, 255))
 
    #draw
-   for Person in App.Scene["People"]:
+   for Person in App.Room["People"]:
       draw(manager, Person, App.screen)
 
-   App.mouseHolding = App.getHolding()
+
+   App.mouseHolding = App.getHolding()   
    if App.mouseHolding[0] != None:
+   
       Hover = manager.getComponent(App.mouseHolding[0], TransformComponent)
+   
       Hover.rect.center = pygame.mouse.get_pos()
 
-   App.mouseSelected = App.getSelected()
 
+   App.mouseSelected = App.getSelected()
    if App.mouseSelected != None:
+
       r = changeName(manager, App.mouseSelected, App.Event)
+
       if r == 1:
+
          App.mouseSelected == None
+
+
    pygame.display.update()
    pygame.time.Clock().tick(60)
