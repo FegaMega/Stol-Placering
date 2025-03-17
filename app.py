@@ -24,10 +24,10 @@ class App:
          "FPS" : 60
       }
    
-      #Object the operator i holding, if None there is no object being held 
+      self.cursorIMG = pygame.SYSTEM_CURSOR_ARROW
+      #Object the operator is holding, if None there is no object being held 
       #First index is the object 
       #Second index is a flag
-      self.cursorIMG = pygame.SYSTEM_CURSOR_ARROW
       self.mouseHolding = [None, "None"]
       self.mouseSelected = None
       self.mouseSelectedMode = ""
