@@ -18,7 +18,9 @@ class app:
       self.screen = pygame.display.set_mode((700, 700))
       self.Event = pygame.event.get()
       self.running = True
-
+      self.debugObj = self.manager.newEntity()
+      self.manager.newComponent(self.debugObj, TransformComponent, pygame.Rect(200, 200, 50, 100))
+      self.manager.newComponent(self.debugObj, VertexComponent, [(0, 0), (50, 0), (50, 50), (0, 50)])
 
 #Main Functions
    def event(self):
@@ -47,7 +49,15 @@ class app:
             case "Normal":
                transform.rect.center = pygame.mouse.get_pos()
             case "Edge":
-               transform.rect.size = [pygame.mouse.get_pos()[0] - transform.rect.x, pygame.mouse.get_pos()[1] - transform.rect.y]
+               transform.rect.size = [max(pygame.mouse.get_pos()[0] - transform.rect.x, 25), max(pygame.mouse.get_pos()[1] - transform.rect.y, 25)]
+               
+               if self.manager.hasComponent(self.mouseHolding[0], CollisionComponent):
+               
+                  Collision = self.manager.getComponent(self.mouseHolding[0], CollisionComponent)
+
+                  if Collision.negativeEdge != None:
+
+                     Collision.negativeEdge.size = [ transform.rect.width - 10, transform.rect.height - 10 ]
 
 
       self.mouseSelected = self.getSelected()
@@ -70,6 +80,14 @@ class app:
 
       for Table in self.Room["Tables"]:
          self.manager.draw(Table, self.screen)
+
+      transform:TransformComponent = self.manager.getComponent(self.debugObj, TransformComponent)
+      Vertex = self.manager.getComponent(self.debugObj, VertexComponent)
+
+      surf = pygame.Surface(transform.rect.size)
+
+      pygame.draw.polygon(surf, (255, 0, 0), Vertex.Vertex)
+      self.screen.blit(surf, transform.rect)
 
       return
    
@@ -100,7 +118,7 @@ class app:
    def getHolding(self) -> object:
 
       hover = self.getHover()
-      
+      print(hover)
       #Nice Cursor change for ease of use 
       if hover[0] != None:
 
@@ -163,10 +181,12 @@ class app:
 
       self.manager.newComponent(t, SpriteComponent, (0, 0, 0), 10)
 
-      rect2 = rect
+      rect2 = pygame.Rect(rect.topleft, rect.size)
       rect2.size = [rect.width - 10, rect.height - 10]
 
       self.manager.newComponent(t, CollisionComponent, pygame.Mask(rect.size), rect2)
+
+      self.manager.newComponent(t, SeatsComponent, [{"Pos" : 50, "Person" : None}])
 
       self.Room["Tables"].append(t)
 

@@ -23,20 +23,28 @@ class Entity:
 
 class TransformComponent:
    def __init__(self, rect, Master=True):
-      self.rect = rect
+      self.rect :pygame.Rect= rect
       self.isMaster = Master
    
 class SpriteComponent:
    def __init__(self, color, radius=10, outlineColor=(0, 0, 0), outlineWidth=0):
+      
+      self.bodyAttributes = {
+         "color" : color,
+         "radius" : radius
+      }
+      
       self.outlineAttributes = {
          "width" : outlineWidth,
          "radius" : radius,
          "color" : outlineColor
       }
-      self.bodyAttributes = {
-         "color" : color,
-         "radius" : radius
-      }
+
+
+class VertexComponent:
+   def __init__(self, Vertex):
+      self.Vertex = Vertex
+
 
 class CollisionComponent:
    def __init__(self, mask, negativeEdge:pygame.Rect=None):
@@ -51,6 +59,11 @@ class TextComponent:
       self.textReleave = 10
       self.Sprite = self.Font.render(self.Text, True, self.Color)
       self.rect = self.Sprite.get_rect()
+
+
+class SeatsComponent:
+   def __init__(self, seats:list):
+      self.seats = seats
 
 
 class Manager:
@@ -113,6 +126,10 @@ class Manager:
             if collision.negativeEdge == None:
 
                return True, "Normal"
+            
+            collision.negativeEdge.topleft = transform.rect.topleft
+            print(transform.rect.topleft, transform.rect.size)
+            print(collision.negativeEdge.topleft, collision.negativeEdge.size)
 
             if mouseCollision(mousePos, collision.negativeEdge):
      
