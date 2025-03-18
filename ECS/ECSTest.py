@@ -43,8 +43,11 @@ class app:
       if self.mouseHolding[0] != None:
       
          transform = self.manager.getComponent(self.mouseHolding[0], TransformComponent)
-         
-         transform.rect.center = pygame.mouse.get_pos()
+         match self.mouseHolding[1]:
+            case "Normal":
+               transform.rect.center = pygame.mouse.get_pos()
+            case "Edge":
+               transform.rect.size = [pygame.mouse.get_pos()[0] - transform.rect.x, pygame.mouse.get_pos()[1] - transform.rect.y]
 
 
       self.mouseSelected = self.getSelected()
@@ -72,26 +75,26 @@ class app:
    
 
 #Daughter functions 
-   def getHover(self) -> list:
+   def getHover(self) -> tuple:
       mousePos = pygame.mouse.get_pos()
 
       #Moves backwards so the top most person get picked first
       for x in range(len(self.Room["People"])-1, -1, -1):
          
-         transform = self.manager.getComponent(self.Room["People"][x], TransformComponent)
-
-         if mouseCollision(mousePos, transform.rect): return [self.Room["People"][x], "Normal"]
+         result, flag = self.manager.CheckCollision(self.Room["People"][x], mousePos)
+         
+         if result: return self.Room["People"][x], flag
 
     #Moves backwards so the top most table get picked first   
       for x in range(len(self.Room["Tables"])-1, -1, -1):
    
-         result = self.manager.CheckCollision(self.Room["Tables"][x], (mousePos))
+         result, flag = self.manager.CheckCollision(self.Room["Tables"][x], (mousePos))
     
          if result:
     
-             return self.Room["Tables"][x], "Normal" 
+             return self.Room["Tables"][x], flag 
 
-      return [None, ""]
+      return None, ""
    
 
    def getHolding(self) -> object:
@@ -116,7 +119,6 @@ class app:
 
          if self.mouseHolding[1] == "Edge":
             self.cursorIMG = pygame.SYSTEM_CURSOR_SIZENWSE
-
          else:
             self.cursorIMG = pygame.SYSTEM_CURSOR_SIZEALL      
 
@@ -140,41 +142,55 @@ class app:
          return self.getHover()[0]
 
 
+   def createPerson(self, rect, text=""):
+
+      t = self.manager.newEntity()
+      
+      self.manager.newComponent(t, TransformComponent, rect, False)
+      
+      self.manager.newComponent(t, SpriteComponent, (255, 255, 255), 10, (0, 0, 0), 2)
+      
+      self.manager.newComponent(t, TextComponent, text, (0, 0, 0), self.font)
+      
+      self.Room["People"].append(t)
+   
+
+   def createTable(self, rect):
+
+      t = self.manager.newEntity()
+
+      self.manager.newComponent(t, TransformComponent, rect, True)
+
+      self.manager.newComponent(t, SpriteComponent, (0, 0, 0), 10)
+
+      rect2 = rect
+      rect2.size = [rect.width - 10, rect.height - 10]
+
+      self.manager.newComponent(t, CollisionComponent, pygame.Mask(rect.size), rect2)
+
+      self.Room["Tables"].append(t)
+
+
+
    def getScene(self):
       #Placeholder function
       
-      scene = {
+      self.Room = {
          "People" : [],
          "Tables" : []
       }
 
       for i in range (0, 5):   
 
-         t = self.manager.newEntity()
-         rect = pygame.Rect(100*i, 100, 50,  25)
-         
-         self.manager.newComponent(t, TransformComponent, rect, False)
-         
-         self.manager.newComponent(t, SpriteComponent, (255, 255, 255), 10, (0, 0, 0), 2)
-         
-         self.manager.newComponent(t, TextComponent, "", (0, 0, 0), self.font)
-         
-         scene["People"].append(t)
+         rect = pygame.Rect(100*i, 100, 50,  25)        
+         self.createPerson(rect)         
 
-      for i in range(0, 1):
+      for i in range(0, 2):
 
-         t = self.manager.newEntity()
          rect = pygame.Rect(150*i, 200, 50, 100)
-
-         self.manager.newComponent(t, TransformComponent, rect, True)
-
-         self.manager.newComponent(t, SpriteComponent, (0, 0, 0), 10)
-
-         self.manager.newComponent(t, CollisionComponent, pygame.Mask(rect.size))
-
-         scene["Tables"].append(t)
-
-      return scene
+         self.createTable(rect)
+         
+      return self.Room
 
 
    
