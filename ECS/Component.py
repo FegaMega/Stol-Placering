@@ -2,7 +2,7 @@ import pygame
 import math
 
 def mouseCollision(A, B:pygame.Rect):
-    return (A[0] >= B.x and A[0] <= B.x + B.width) and (A[1] >= B.y and A[1] <= B.y + B.height)
+    return (A[0] >= B.x and A[0] < B.x + B.width) and (A[1] >= B.y and A[1] < B.y + B.height)
 
 
 def getTextEvent(text:str, Event):
@@ -92,7 +92,7 @@ class Manager:
    def CheckCollision(self, Ent, mousePos):
       if not self.hasComponent(Ent, TransformComponent):
          return 0
-      mousePos = [mousePos[0]+1, mousePos[1]-1]
+      
       transform = self.getComponent(Ent, TransformComponent)
 
       if mouseCollision(mousePos, transform.rect):
@@ -101,7 +101,6 @@ class Manager:
          collision : CollisionComponent = self.getComponent(Ent, CollisionComponent)
 
          maskPos = [mousePos[0] - transform.rect.x -1, mousePos[1] - transform.rect.y]
-         print(maskPos)
          if collision.mask.get_at(maskPos):
             return True
          return False
@@ -140,8 +139,6 @@ class Manager:
 
          Collision.mask = pygame.mask.from_surface(surface)
 
-         surf = Collision.mask.to_surface()
-         screen.blit(surf, (0, 0))
       screen.blit(surface, transform.rect)
 
 
