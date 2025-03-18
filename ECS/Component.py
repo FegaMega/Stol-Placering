@@ -95,7 +95,7 @@ class Manager:
    def CheckCollision(self, Ent, mousePos) -> tuple:
 
       if not self.hasComponent(Ent, TransformComponent):
-         return 0
+         return 0, ""
       
       transform = self.getComponent(Ent, TransformComponent)
 
