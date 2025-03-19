@@ -20,7 +20,7 @@ class app:
       self.running = True
       self.debugObj = self.manager.newEntity()
       self.manager.newComponent(self.debugObj, TransformComponent, pygame.Rect(200, 200, 50, 100))
-      self.manager.newComponent(self.debugObj, VertexComponent, [(0, 0), (50, 0), (50, 50), (0, 50)])
+      self.manager.newComponent(self.debugObj, VertexComponent, [(0, 0), (50, 0), (50, 50), (0, 50)], 1)
 
 #Main Functions
    def event(self):
@@ -64,7 +64,7 @@ class app:
 
       if self.mouseSelected != None:
 
-         r = changeName(self.manager, self.mouseSelected, self.Event)
+         r = self.manager.changeName(self.manager, self.mouseSelected, self.Event)
 
          if r == 1:
 

@@ -24,6 +24,7 @@ class Entity:
 class TransformComponent:
    def __init__(self, rect, Master=True):
       self.rect :pygame.Rect= rect
+      self.orgSize = rect.size
       self.isMaster = Master
    
 class SpriteComponent:
@@ -42,9 +43,18 @@ class SpriteComponent:
 
 
 class VertexComponent:
-   def __init__(self, Vertex):
+   def __init__(self, Vertex, scale=1):
       self.Vertex = Vertex
+      self.scaledVertex = self.getScaledVertex(scale)
 
+   def getScaledVertex(self, scale):
+
+      self.scaledVertex = []
+
+      for pos in self.Vertex:
+         self.scaledVertex.append((pos[0]*scale, pos[1]*scale))
+      
+      return self.scaledVertex
 
 class CollisionComponent:
    def __init__(self, mask, negativeEdge:pygame.Rect=None):
@@ -77,7 +87,7 @@ class Manager:
       
       self.Entitys[EntID].Component[str(type)] = T
 
-   def getComponent(self, EntID, type):
+   def getComponent(self, EntID, type:object):
       return self.Entitys[EntID].Component[str(type)]
    
    def hasComponent(self, EntID, type):
@@ -182,38 +192,40 @@ class Manager:
       screen.blit(surface, transform.rect)
 
 
-def changeName(manager: Manager, Ent, Event):
+   def changeName(self, Ent, Event):
 
-   #Returns if object doesn't have a TextComponent
-   if not manager.hasComponent(Ent, TextComponent):
-      return -1
+      #Returns if object doesn't have a TextComponent
+      if not self.hasComponent(Ent, TextComponent):
+         return -1
+      
+      #Gets component
+      textComp:TextComponent  = self.getComponent(Ent, TextComponent)
+      
+      #Gets changes in text from events
+      text = getTextEvent(textComp.Text, Event)
+
+      #Checks if end signal got returned
+      if text == 0:
+         return 1
+
+      #Sets the objects text to the new one
+      textComp.Text = text
+
+      #Renders the text and creates the rect around the render
+      textComp.Sprite = textComp.Font.render(textComp.Text, True, textComp.Color)
+      textComp.rect = textComp.Sprite.get_rect()
+
+      #Makes TransformComponent if object lack it
+      if not self.hasComponent(Ent, TransformComponent):
+         self.newComponent(Ent, TransformComponent, textComp.rect)
+      
+      #If transform component is not considerd master the text width changes the objects width
+      transform : TransformComponent= self.getComponent(Ent, TransformComponent)
+      if transform.isMaster:
+         transform.rect.width = max(transform.rect.width, textComp.rect.width + 2*textComp.textReleave)
+      else:
+         transform.rect.width = textComp.rect.width + 2*textComp.textReleave
+
+      return 0
+
    
-   #Gets component
-   textComp:TextComponent  = manager.getComponent(Ent, TextComponent)
-   
-   #Gets changes in text from events
-   text = getTextEvent(textComp.Text, Event)
-
-   #Checks if end signal got returned
-   if text == 0:
-      return 1
-
-   #Sets the objects text to the new one
-   textComp.Text = text
-
-   #Renders the text and creates the rect around the render
-   textComp.Sprite = textComp.Font.render(textComp.Text, True, textComp.Color)
-   textComp.rect = textComp.Sprite.get_rect()
-
-   #Makes TransformComponent if object lack it
-   if not manager.hasComponent(Ent, TransformComponent):
-      manager.newComponent(Ent, TransformComponent, textComp.rect)
-   
-   #If transform component is not considerd master the text width changes the objects width
-   transform : TransformComponent= manager.getComponent(Ent, TransformComponent)
-   if transform.isMaster:
-      transform.rect.width = max(transform.rect.width, textComp.rect.width + 2*textComp.textReleave)
-   else:
-      transform.rect.width = textComp.rect.width + 2*textComp.textReleave
-
-   return 0
