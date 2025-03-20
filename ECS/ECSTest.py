@@ -18,9 +18,33 @@ class app:
       self.screen = pygame.display.set_mode((700, 700))
       self.Event = pygame.event.get()
       self.running = True
+      
+      
       self.debugObj = self.manager.newEntity()
-      self.manager.newComponent(self.debugObj, TransformComponent, pygame.Rect(200, 200, 50, 100))
-      self.manager.newComponent(self.debugObj, VertexComponent, [(0, 0), (50, 0), (50, 50), (0, 50)], 1)
+      self.manager.newComponent(self.debugObj, TransformComponent, pygame.Rect(200, 200, 100, 100))
+      self.manager.newComponent(self.debugObj, VertexComponent, [(0, 0), (50, 0), (25, 25), (50, 50), (0, 50)], 1)
+
+      seats = [
+         {
+            "Pos" : (25, 0),
+            "Occupied" : -1
+         },
+         {
+            "Pos" : (25, 25),
+            "Occupied" : -1
+         },
+         {
+            "Pos" : (25, 50),
+            "Occupied" : -1
+         },
+         {
+            "Pos" : (0, 25),
+            "Occupied" : -1
+         }
+      ]
+
+      self.manager.newComponent(self.debugObj, SeatComponent, seats, 2)
+
 
 #Main Functions
    def event(self):
@@ -48,6 +72,15 @@ class app:
          match self.mouseHolding[1]:
             case "Normal":
                transform.rect.center = pygame.mouse.get_pos()
+
+               DebugObjRect = self.manager.getComponent(self.debugObj, TransformComponent).rect
+               seats = self.manager.getComponent(self.debugObj, SeatComponent).getViewportRelativeSeats(2, DebugObjRect)
+               for seat in seats:
+                  seat["Occupied"] = -1   
+                  if mouseCollision(seat["Pos"], transform.rect):
+                     transform.rect.center = seat["Pos"]
+                     seat["Occupied"] = self.mouseHolding[0]
+
             case "Edge":
                transform.rect.size = [max(pygame.mouse.get_pos()[0] - transform.rect.x, 25), max(pygame.mouse.get_pos()[1] - transform.rect.y, 25)]
                
@@ -75,19 +108,22 @@ class app:
    def Render(self):
       self.screen.fill((255, 255, 255))
       #draw
-      for Person in self.Room["People"]:
-         self.manager.draw(Person, self.screen)
-
-      for Table in self.Room["Tables"]:
-         self.manager.draw(Table, self.screen)
 
       transform:TransformComponent = self.manager.getComponent(self.debugObj, TransformComponent)
       Vertex = self.manager.getComponent(self.debugObj, VertexComponent)
 
-      surf = pygame.Surface(transform.rect.size)
+      surf = pygame.Surface(transform.rect.size).convert_alpha()
+      surf.fill((0, 0, 0, 0))
 
-      pygame.draw.polygon(surf, (255, 0, 0), Vertex.Vertex)
+      pygame.draw.polygon(surf, (255, 0, 0), Vertex.getScaledVertex(2))
+
       self.screen.blit(surf, transform.rect)
+
+      for Table in self.Room["Tables"]:
+         self.manager.draw(Table, self.screen)
+
+      for Person in self.Room["People"]:
+         self.manager.draw(Person, self.screen)
 
       return
    
@@ -118,7 +154,6 @@ class app:
    def getHolding(self) -> object:
 
       hover = self.getHover()
-      print(hover)
       #Nice Cursor change for ease of use 
       if hover[0] != None:
 
@@ -185,8 +220,6 @@ class app:
       rect2.size = [rect.width - 10, rect.height - 10]
 
       self.manager.newComponent(t, CollisionComponent, pygame.Mask(rect.size), rect2)
-
-      self.manager.newComponent(t, SeatsComponent, [{"Pos" : 50, "Person" : None}])
 
       self.Room["Tables"].append(t)
 

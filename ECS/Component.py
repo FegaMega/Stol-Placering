@@ -16,6 +16,7 @@ def getTextEvent(text:str, Event):
             text += event.unicode
    return text
 
+
 class Entity:
    def __init__(self):
       self.Component = {}
@@ -27,6 +28,7 @@ class TransformComponent:
       self.orgSize = rect.size
       self.isMaster = Master
    
+
 class SpriteComponent:
    def __init__(self, color, radius=10, outlineColor=(0, 0, 0), outlineWidth=0):
       
@@ -71,10 +73,36 @@ class TextComponent:
       self.rect = self.Sprite.get_rect()
 
 
-class SeatsComponent:
-   def __init__(self, seats:list):
-      self.seats = seats
+class SeatComponent:
+   def __init__(self, seats:list, scale):
+      self.Seats = seats
+      self.scaledSeats = self.getScaledSeats(scale)
 
+   def getViewportRelativeSeats(self, scale, Rect):
+
+      self.scaledSeats = []
+
+      for seat in self.Seats:
+         self.scaledSeats.append(
+            {
+            "Pos": ((seat["Pos"][0] * scale) + Rect.x, (seat["Pos"][1] * scale) + Rect.y), 
+            "Occupied" : seat["Occupied"]
+            })
+      
+      return self.scaledSeats
+
+   def getScaledSeats(self, scale):
+
+      self.scaledSeats = []
+
+      for seat in self.Seats:
+         self.scaledSeats.append(
+            {
+            "Pos": (seat["Pos"][0]*scale, seat["Pos"][1]*scale), 
+            "Occupied" : seat["Occupied"]
+            })
+      
+      return self.scaledSeats
 
 class Manager:
    def __init__(self):
@@ -138,8 +166,6 @@ class Manager:
                return True, "Normal"
             
             collision.negativeEdge.topleft = transform.rect.topleft
-            print(transform.rect.topleft, transform.rect.size)
-            print(collision.negativeEdge.topleft, collision.negativeEdge.size)
 
             if mouseCollision(mousePos, collision.negativeEdge):
      
