@@ -71,15 +71,20 @@ class app:
          transform = self.manager.getComponent(self.mouseHolding[0], TransformComponent)
          match self.mouseHolding[1]:
             case "Normal":
+
                transform.rect.center = pygame.mouse.get_pos()
 
                DebugObjRect = self.manager.getComponent(self.debugObj, TransformComponent).rect
                seats = self.manager.getComponent(self.debugObj, SeatComponent).getViewportRelativeSeats(2, DebugObjRect)
+               
                for seat in seats:
-                  seat["Occupied"] = -1   
-                  if mouseCollision(seat["Pos"], transform.rect):
+                  
+                  if mouseCollision(seat["Pos"], transform.rect) and seat["Occupied"] == -1:
                      transform.rect.center = seat["Pos"]
                      seat["Occupied"] = self.mouseHolding[0]
+                  
+                  elif seat["Occupied"] == self.mouseHolding:
+                     seat["Occupied"] = -1
 
             case "Edge":
                transform.rect.size = [max(pygame.mouse.get_pos()[0] - transform.rect.x, 25), max(pygame.mouse.get_pos()[1] - transform.rect.y, 25)]
