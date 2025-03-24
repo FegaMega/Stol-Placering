@@ -91,14 +91,16 @@ class app:
                DebugObjRect = self.manager.getComponent(self.debugObj, TransformComponent).rect
                seats = self.manager.getComponent(self.debugObj, SeatComponent).getViewportRelativeSeats(2, DebugObjRect)
                
-               for seat in seats:
-                  
-                  if mouseCollision(seat["Pos"], transform.rect) and seat["Occupied"] == -1:
-                     transform.rect.center = seat["Pos"]
-                     seat["Occupied"] = self.mouseHolding[0]
-                  
-                  elif seat["Occupied"] == self.mouseHolding:
-                     seat["Occupied"] = -1
+               Snap = self.manager.getComponent(self.mouseHolding[0], SnapComponent)
+
+               if Snap.ID[0] != None:
+                  Seat = self.manager.getComponent(Snap.ID[0], SeatComponent)
+                  transform.rect.center = Seat.Seats[Snap.ID[1]]
+
+               for x in range(0, len(seats)):
+                  if mouseCollision(seats[x]["Pos"], transform.rect) and seats[x]["Occupied"] == -1:
+                     Snap.ID = [self.debugObj, x]
+
 
             case "Edge":
                transform.rect.size = [max(mousePos[0] - transform.rect.x, 25), max(mousePos[1] - transform.rect.y, 25)]
@@ -234,7 +236,7 @@ class app:
       
       self.manager.newComponent(t, TextComponent, text, (0, 0, 0), self.font)
 
-      self.manager.newComponent(t, SnapComponent, False, ("", -1))
+      self.manager.newComponent(t, SnapComponent, False, [None, -1])
       
       self.Room["People"].append(t)
    
@@ -251,6 +253,8 @@ class app:
       rect2.size = [rect.width - 10, rect.height - 10]
 
       self.manager.newComponent(t, CollisionComponent, pygame.Mask(rect.size), rect2)
+
+      self.manager.newComponent(t, SnapComponent, False, [None, -1])
 
       self.Room["Tables"].append(t)
 
