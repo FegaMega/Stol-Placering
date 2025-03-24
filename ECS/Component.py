@@ -73,6 +73,11 @@ class TextComponent:
       self.rect = self.Sprite.get_rect()
 
 
+class SnapComponent:
+   def __init__(self, Snapped, ID):
+      self.Snapped:bool = Snapped 
+      self.SnappedID = ID 
+
 class SeatComponent:
    def __init__(self, seats:list, scale):
       self.Seats = seats

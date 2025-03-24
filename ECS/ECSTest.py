@@ -4,6 +4,16 @@ from Component import *
 pygame.init()
 
 
+def getCenter(surface:pygame.Surface):
+   return (surface.get_width()/2, surface.get_height()/2)
+
+def getRoomCursorPos(RoomTopLeft):
+   return (
+      pygame.mouse.get_pos()[0] - RoomTopLeft[0],
+      pygame.mouse.get_pos()[1] - RoomTopLeft[1]
+
+   )
+
 def mouseCollision(A, B:pygame.Rect):
     return (A[0] >= B.x and A[0] <= B.x + B.width) and (A[1] >= B.y and A[1] <= B.y + B.height)
 
@@ -15,7 +25,11 @@ class app:
       self.mouseHolding = [None, ""]
       self.mouseSelected = None
       self.cursorIMG = pygame.SYSTEM_CURSOR_ARROW
-      self.screen = pygame.display.set_mode((700, 700))
+      self.screen  = {
+         "Viewport" : pygame.display.set_mode((700, 700), vsync=1),
+         "Room" : pygame.Surface((500, 500))
+         }
+      self.RoomPos = (0, 0)
       self.Event = pygame.event.get()
       self.running = True
       
@@ -62,17 +76,17 @@ class app:
 
       pygame.mouse.set_cursor(self.cursorIMG)
       self.cursorIMG = pygame.SYSTEM_CURSOR_ARROW
-
+      mousePos = getRoomCursorPos(self.RoomPos)
 
       self.mouseHolding = self.getHolding()   
 
       if self.mouseHolding[0] != None:
-      
+         
          transform = self.manager.getComponent(self.mouseHolding[0], TransformComponent)
          match self.mouseHolding[1]:
             case "Normal":
 
-               transform.rect.center = pygame.mouse.get_pos()
+               transform.rect.center = mousePos
 
                DebugObjRect = self.manager.getComponent(self.debugObj, TransformComponent).rect
                seats = self.manager.getComponent(self.debugObj, SeatComponent).getViewportRelativeSeats(2, DebugObjRect)
@@ -87,7 +101,7 @@ class app:
                      seat["Occupied"] = -1
 
             case "Edge":
-               transform.rect.size = [max(pygame.mouse.get_pos()[0] - transform.rect.x, 25), max(pygame.mouse.get_pos()[1] - transform.rect.y, 25)]
+               transform.rect.size = [max(mousePos[0] - transform.rect.x, 25), max(mousePos[1] - transform.rect.y, 25)]
                
                if self.manager.hasComponent(self.mouseHolding[0], CollisionComponent):
                
@@ -102,7 +116,7 @@ class app:
 
       if self.mouseSelected != None:
 
-         r = self.manager.changeName(self.manager, self.mouseSelected, self.Event)
+         r = self.manager.changeName(self.mouseSelected, self.Event)
 
          if r == 1:
 
@@ -111,7 +125,9 @@ class app:
       return 
 
    def Render(self):
-      self.screen.fill((255, 255, 255))
+      self.screen["Viewport"].fill((0, 0, 0))
+      self.screen["Room"].fill((255, 255, 255))
+
       #draw
 
       transform:TransformComponent = self.manager.getComponent(self.debugObj, TransformComponent)
@@ -122,20 +138,28 @@ class app:
 
       pygame.draw.polygon(surf, (255, 0, 0), Vertex.getScaledVertex(2))
 
-      self.screen.blit(surf, transform.rect)
+      self.screen["Room"].blit(surf, transform.rect)
 
       for Table in self.Room["Tables"]:
-         self.manager.draw(Table, self.screen)
+         self.manager.draw(Table, self.screen["Room"])
 
       for Person in self.Room["People"]:
-         self.manager.draw(Person, self.screen)
+         self.manager.draw(Person, self.screen["Room"])
+
+
+      self.RoomPos = (
+         getCenter(self.screen["Viewport"])[0] - getCenter(self.screen["Room"])[0],
+         getCenter(self.screen["Viewport"])[1] - getCenter(self.screen["Room"])[1]
+         )
+      self.screen["Viewport"].blit(self.screen["Room"], self.RoomPos)
+
 
       return
    
 
 #Daughter functions 
    def getHover(self) -> tuple:
-      mousePos = pygame.mouse.get_pos()
+      mousePos = getRoomCursorPos(self.RoomPos)
 
       #Moves backwards so the top most person get picked first
       for x in range(len(self.Room["People"])-1, -1, -1):
@@ -209,6 +233,8 @@ class app:
       self.manager.newComponent(t, SpriteComponent, (255, 255, 255), 10, (0, 0, 0), 2)
       
       self.manager.newComponent(t, TextComponent, text, (0, 0, 0), self.font)
+
+      self.manager.newComponent(t, SnapComponent, False, ("", -1))
       
       self.Room["People"].append(t)
    
