@@ -92,14 +92,28 @@ class app:
                seats = self.manager.getComponent(self.debugObj, SeatComponent).getViewportRelativeSeats(2, DebugObjRect)
                
                Snap = self.manager.getComponent(self.mouseHolding[0], SnapComponent)
+               print(seats)
 
                if Snap.ID[0] != None:
-                  Seat = self.manager.getComponent(Snap.ID[0], SeatComponent)
-                  transform.rect.center = Seat.Seats[Snap.ID[1]]
 
-               for x in range(0, len(seats)):
-                  if mouseCollision(seats[x]["Pos"], transform.rect) and seats[x]["Occupied"] == -1:
-                     Snap.ID = [self.debugObj, x]
+                  Rect = self.manager.getComponent(Snap.ID[0], TransformComponent).rect
+                  Seats = self.manager.getComponent(Snap.ID[0], SeatComponent).getViewportRelativeSeats(2, Rect)
+                  
+                  if not mouseCollision(Seats[Snap.ID[1]]["Pos"], transform.rect):
+                     Seats[Snap.ID[1]]["Occupied"] = -1
+                     Snap.ID = (None, -1)
+
+                  else:
+                     transform.rect.center = Seats[Snap.ID[1]]["Pos"]
+
+                     Seats[Snap.ID[1]]["Occupied"] = self.mouseHolding[0]
+               
+               else:
+                  
+                  for x in range(0, len(seats)):
+                     if mouseCollision(seats[x]["Pos"], transform.rect) and seats[x]["Occupied"] == -1:
+                        Snap.ID = [self.debugObj, x]
+                        seats[x]["Occupied"] = self.mouseHolding[0]
 
 
             case "Edge":
