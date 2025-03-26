@@ -17,10 +17,70 @@ def getRoomCursorPos(RoomTopLeft):
 def mouseCollision(A, B:pygame.Rect):
     return (A[0] >= B.x and A[0] <= B.x + B.width) and (A[1] >= B.y and A[1] <= B.y + B.height)
 
+#If you are confused about some weird names, just ask Nalani
+
 class app:
    def __init__(self):
       self.manager = Manager()
-      self.font = pygame.font.SysFont("Helvetica", 20)
+      self.font = pygame.font.SysFont("Helvetica", 15)
+      self.TableTypes = {
+         "Rectangular" : {
+            "Vertex" : [
+               (0, 0), 
+               (100, 0), 
+               (100, 50), 
+               (0, 50)
+            ],
+            "Seats" : [
+               {
+                  "Pos" : (25, 0),
+                  "Occupied" : -1
+               }, 
+               {
+                  "Pos" : (75, 0),
+                  "Occupied" : -1
+               }, 
+               {
+                  "Pos" : (100, 25),
+                  "Occupied" : -1
+               }, 
+               {
+                  "Pos" : (75, 50),
+                  "Occupied" : -1
+               }, 
+               {
+                  "Pos" : (25, 50),
+                  "Occupied" : -1
+               }, 
+               {
+                  "Pos" : (0, 25),
+                  "Occupied" : -1
+               }
+            ]
+         },
+         "Trapezoid" : {
+            "Vertex" : [
+               (50, 0), 
+               (150, 0),
+               (200, 100), 
+               (0, 100)
+            ],
+            "Seats" : [
+               {
+                  "Pos" : (100, 0),
+                  "Occupied" : -1
+               }, 
+               {
+                  "Pos" : (50, 100),
+                  "Occupied" : -1
+               }, 
+               {
+                  "Pos" : (150, 100),
+                  "Occupied" : -1
+               }
+            ]
+         }
+      }
       self.Room = self.getScene()
       self.mouseHolding = [None, ""]
       self.mouseSelected = None
@@ -29,44 +89,15 @@ class app:
          "Viewport" : pygame.display.set_mode((700, 700), vsync=1),
          "Room" : pygame.Surface((700, 700))
          }
+      
+
       self.RoomPos = (0, 0)
       self.Event = pygame.event.get()
       self.running = True
       
-      rect = pygame.Rect(200, 200, 100, 100)
-      self.debugObj = self.manager.newEntity()
-      self.manager.newComponent(self.debugObj, TransformComponent, rect)
-      self.manager.newComponent(self.debugObj, VertexComponent, [(0, 0), (50, 0), (25, 25), (50, 50), (0, 50)], 1)
-
-      seats = [
-         {
-            "Pos" : (25, 0),
-            "Occupied" : -1
-         },
-         {
-            "Pos" : (25, 25),
-            "Occupied" : -1
-         },
-         {
-            "Pos" : (25, 50),
-            "Occupied" : -1
-         },
-         {
-            "Pos" : (0, 25),
-            "Occupied" : -1
-         }
-      ]
-
-      self.manager.newComponent(self.debugObj, SeatComponent, seats, 2)
-      rect2 = pygame.Rect(rect.topleft, rect.size)
-      rect2.size = [rect.width - 10, rect.height - 10]
-
-      self.manager.newComponent(self.debugObj, CollisionComponent, pygame.Mask(rect.size), rect2)     
-      self.manager.newComponent(self.debugObj, SnapComponent)
-      self.Room["Tables"].append(self.debugObj)
 
 #Main Functions
-   def Felicia(self):
+   def Felicia(self): # Formaly known as event
 
       self.Event = pygame.event.get()
 
@@ -77,7 +108,7 @@ class app:
             self.running = False
 
 
-   def Morot(self):
+   def Morot(self): # Formaly known as Update
 
       pygame.mouse.set_cursor(self.cursorIMG)
       self.cursorIMG = pygame.SYSTEM_CURSOR_ARROW
@@ -89,43 +120,21 @@ class app:
          
          transform : TransformComponent = self.manager.getComponent(self.mouseHolding[0], TransformComponent)
          match self.mouseHolding[1]:
-            case "Normal":
-               
+            case "Normal":   
                transform.rect.center = mousePos
 
-
-               if self.manager.hasComponent(self.mouseHolding[0], SnapComponent):
+               if self.manager.hasComponent(self.mouseHolding[0], SnapComponent): 
                   self.handleSnap(self.mouseHolding[0])
-               Snap : SnapComponent = self.manager.getComponent(self.mouseHolding[0], SnapComponent)               
 
-               if Snap.ID[0] != None:
-
-                  
-
-
-               else:
-                  
-                  DebugObjRect : pygame.Rect = self.manager.getComponent(self.debugObj, TransformComponent).rect
-                  seats : list = self.manager.getComponent(self.debugObj, SeatComponent).getViewportRelativeSeats(2, DebugObjRect)
-                  
-                  for x in range(0, len(seats)):
-                     if mouseCollision(seats[x]["Pos"], transform.rect) and seats[x]["Occupied"] == -1 and self.mouseHolding[0] != self.debugObj:
-
-                        Snap.ID = [self.debugObj, x]
-
-                        seats[x]["Occupied"] = self.mouseHolding[0]
-
-                        rect = self.manager.getComponent(Snap.ID[0], TransformComponent).rect
-
-                  self.manager.getComponent(self.debugObj, SeatComponent).returnViewportRelativeSeats(2, DebugObjRect, seats)
-
-
+               #If the object has seats
                if self.manager.hasComponent(self.mouseHolding[0], SeatComponent):
-
-                  for seat in self.manager.getComponent(self.mouseHolding[0], SeatComponent).getViewportRelativeSeats(2, transform.rect):
-
+                  
+                  for seat in self.manager.getComponent(self.mouseHolding[0], SeatComponent).getViewportRelativeSeats(transform.getScale(), transform.rect):
+                     
+                     #If seat is not empty
                      if seat["Occupied"] != -1:
 
+                        #Move occupant to new position
                         occuRect = self.manager.getComponent(seat["Occupied"], TransformComponent).rect
                         occuRect.center = seat["Pos"]
 
@@ -140,6 +149,18 @@ class app:
                   if Collision.negativeEdge != None:
 
                      Collision.negativeEdge.size = [ transform.rect.width - 10, transform.rect.height - 10 ]
+               
+               #If the object has seats
+               if self.manager.hasComponent(self.mouseHolding[0], SeatComponent):
+                  
+                  for seat in self.manager.getComponent(self.mouseHolding[0], SeatComponent).getViewportRelativeSeats(transform.getScale(), transform.rect):
+                     
+                     #If seat is not empty
+                     if seat["Occupied"] != -1:
+
+                        #Move occupant to new position
+                        occuRect = self.manager.getComponent(seat["Occupied"], TransformComponent).rect
+                        occuRect.center = seat["Pos"]
 
 
       self.mouseSelected = self.getSelected()
@@ -148,27 +169,38 @@ class app:
 
          r = self.manager.changeName(self.mouseSelected, self.Event)
 
+
+         #If Selected Object is snapped to another object it should still be centered on it
+         if self.manager.hasComponent(self.mouseSelected, SnapComponent):
+
+            #Get Snap Component
+            Snap = self.manager.getComponent(self.mouseSelected, SnapComponent)
+
+            #Get Transform of EntID
+            transform = self.manager.getComponent(self.mouseSelected, TransformComponent)
+            
+            if Snap.ID[0] != None:
+
+               #Get the Snapped to objects rect and seats
+               SnappedTransform : TransformComponent = self.manager.getComponent(Snap.ID[0], TransformComponent)
+
+               SeatComp : SeatComponent = self.manager.getComponent(Snap.ID[0], SeatComponent)
+
+               Seats = SeatComp.getViewportRelativeSeats(SnappedTransform.getScale(), SnappedTransform.rect)
+
+               transform.rect.center = Seats[Snap.ID[1]]["Pos"]
+
          if r == 1:
 
             self.mouseSelected == None
 
       return 
 
-   def Groda(self):
+   def Groda(self): #Formaly known as Render
       self.screen["Viewport"].fill((0, 0, 0))
       self.screen["Room"].fill((255, 255, 255))
 
       #draw
-
-      transform:TransformComponent = self.manager.getComponent(self.debugObj, TransformComponent)
-      Vertex = self.manager.getComponent(self.debugObj, VertexComponent)
-
-      surf = pygame.Surface(transform.rect.size).convert_alpha()
-      surf.fill((0, 0, 0, 0))
-
-      pygame.draw.polygon(surf, (255, 0, 0), Vertex.getScaledVertex(2))
-
-      self.screen["Room"].blit(surf, transform.rect)
 
       for Table in self.Room["Tables"]:
          self.manager.draw(Table, self.screen["Room"])
@@ -269,22 +301,24 @@ class app:
       self.Room["People"].append(t)
    
 
-   def createTable(self, rect):
+   def createTable(self, type, Rect):
 
       t = self.manager.newEntity()
+      
+      rect = pygame.draw.polygon(pygame.Surface((10000, 10000)), (0, 0, 0), self.TableTypes[type]["Vertex"])
+      rect.topleft = Rect.topleft
+      self.manager.newComponent(t, TransformComponent, rect)
+      self.manager.newComponent(t, VertexComponent, self.TableTypes[type]["Vertex"])
 
-      self.manager.newComponent(t, TransformComponent, rect, True)
-
-      self.manager.newComponent(t, SpriteComponent, (0, 0, 0), 10)
-
+      self.manager.newComponent(t, SeatComponent, self.TableTypes[type]["Seats"])
       rect2 = pygame.Rect(rect.topleft, rect.size)
       rect2.size = [rect.width - 10, rect.height - 10]
 
-      self.manager.newComponent(t, CollisionComponent, pygame.Mask(rect.size), rect2)
-
-      self.manager.newComponent(t, SnapComponent, False, [None, -1])
+      self.manager.newComponent(t, CollisionComponent, pygame.Mask(rect.size), rect2)     
+      self.manager.newComponent(t, SnapComponent)
 
       self.Room["Tables"].append(t)
+
 
 
 
@@ -304,39 +338,68 @@ class app:
       for i in range(0, 2):
 
          rect = pygame.Rect(150*i, 200, 50, 100)
-         self.createTable(rect)
+         self.createTable("Trapezoid", rect)
          
       return self.Room
 
    def handleSnap(self, EntID):
-      
-      transform = self.manager.getComponent(EntID, TransformComponent)
 
+      #Get Snap Component
       Snap = self.manager.getComponent(EntID, SnapComponent)
 
-      Rect = self.manager.getComponent(Snap.ID[0], TransformComponent).rect
+      #Get Transform of EntID
+      transform = self.manager.getComponent(EntID, TransformComponent)
+      
+      if Snap.ID[0] != None:
 
-      Seats = self.manager.getComponent(Snap.ID[0], SeatComponent).getViewportRelativeSeats(2, Rect)
+         #Get the Snapped to objects rect and seats
+         SnappedTransform : TransformComponent = self.manager.getComponent(Snap.ID[0], TransformComponent)
 
-      if not mouseCollision(Seats[Snap.ID[1]]["Pos"], transform.rect):
+         SeatComp : SeatComponent = self.manager.getComponent(Snap.ID[0], SeatComponent)
 
-         Seats[Snap.ID[1]]["Occupied"] = -1
+         Seats = SeatComp.getViewportRelativeSeats(SnappedTransform.getScale(), SnappedTransform.rect)
 
-         rect = self.manager.getComponent(Snap.ID[0], TransformComponent).rect
-         
-         self.manager.getComponent(Snap.ID[0], SeatComponent).returnViewportRelativeSeats(2, rect, Seats)
-         
-         Snap.ID = (None, -1)
+         #If not touching the seat anymore
+         if not mouseCollision(Seats[Snap.ID[1]]["Pos"], transform.rect):
+
+            #Leave seat
+            Seats[Snap.ID[1]]["Occupied"] = -1
+            
+            Snap.ID = (None, -1)
+
+         else:
+
+            transform.rect.center = Seats[Snap.ID[1]]["Pos"]
+
+            Seats[Snap.ID[1]]["Occupied"] = self.mouseHolding[0]
+            
+         SeatComp.returnViewportRelativeSeats(SnappedTransform.getScale(), SnappedTransform.rect, Seats)
+
+         return
 
       else:
-
-         transform.rect.center = Seats[Snap.ID[1]]["Pos"]
-
-         Seats[Snap.ID[1]]["Occupied"] = self.mouseHolding[0]
-
-         rect = self.manager.getComponent(Snap.ID[0], TransformComponent).rect
          
-         self.manager.getComponent(Snap.ID[0], SeatComponent).returnViewportRelativeSeats(2, rect, Seats)
+         for table in self.Room["Tables"]:
+            
+            if not self.manager.hasComponent(table, SeatComponent):
+               continue
+               
+            TableTransform : TransformComponent = self.manager.getComponent(table, TransformComponent)
+            SeatComp : SeatComponent = self.manager.getComponent(table, SeatComponent)
+            seats : list = SeatComp.getViewportRelativeSeats(TableTransform.getScale(), TableTransform.rect)
+            
+            for x in range(0, len(seats)):
+
+               if mouseCollision(seats[x]["Pos"], transform.rect) and seats[x]["Occupied"] == -1 and self.mouseHolding[0] != table:
+
+                  Snap.ID = [table, x]
+
+                  seats[x]["Occupied"] = self.mouseHolding[0]
+
+                  SeatComp.returnViewportRelativeSeats(TableTransform.getScale(), TableTransform.rect, seats)
+
+                  return
+
 
 def NalaniÄrBäst(): #Formaly known as Main
 

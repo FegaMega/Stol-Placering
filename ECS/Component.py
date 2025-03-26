@@ -27,8 +27,9 @@ class TransformComponent:
       self.rect :pygame.Rect= rect
       self.orgSize = rect.size
       self.isMaster = Master
+   def getScale(self) -> tuple:
+      return (self.rect.width / self.orgSize[0], self.rect.height / self.orgSize[1])
    
-
 class SpriteComponent:
    def __init__(self, color, radius=10, outlineColor=(0, 0, 0), outlineWidth=0):
       
@@ -45,16 +46,15 @@ class SpriteComponent:
 
 
 class VertexComponent:
-   def __init__(self, Vertex, scale=1):
+   def __init__(self, Vertex):
       self.Vertex = Vertex
-      self.scaledVertex = self.getScaledVertex(scale)
 
    def getScaledVertex(self, scale):
 
       self.scaledVertex = []
 
       for pos in self.Vertex:
-         self.scaledVertex.append((pos[0]*scale, pos[1]*scale))
+         self.scaledVertex.append((pos[0]*scale[0], pos[1]*scale[1]))
       
       return self.scaledVertex
 
@@ -68,7 +68,7 @@ class TextComponent:
       self.Text = Text
       self.Color = Color
       self.Font = Font
-      self.textReleave = 10
+      self.textReleave = 5
       self.Sprite = self.Font.render(self.Text, True, self.Color)
       self.rect = self.Sprite.get_rect()
 
@@ -79,9 +79,8 @@ class SnapComponent:
       self.ID = ID 
 
 class SeatComponent:
-   def __init__(self, seats:list, scale):
+   def __init__(self, seats:list):
       self.Seats = seats
-      self.scaledSeats = self.getScaledSeats(scale)
 
    def getViewportRelativeSeats(self, scale, Rect):
 
@@ -90,7 +89,7 @@ class SeatComponent:
       for seat in self.Seats:
          self.scaledSeats.append(
             {
-            "Pos": ((seat["Pos"][0] * scale) + Rect.x, (seat["Pos"][1] * scale) + Rect.y), 
+            "Pos": ((seat["Pos"][0] * scale[0]) + Rect.x, (seat["Pos"][1] * scale[1]) + Rect.y), 
             "Occupied" : seat["Occupied"]
             })
       
@@ -102,7 +101,7 @@ class SeatComponent:
       for seat in Seats:
          self.Seats.append(
             {
-            "Pos" : ((seat["Pos"][0] - Rect.x) / scale, (seat["Pos"][1] - Rect.y) / scale),
+            "Pos" : ((seat["Pos"][0] - Rect.x) / scale[0], (seat["Pos"][1] - Rect.y) / scale[1]),
             "Occupied" : seat["Occupied"]
             }
          )
@@ -115,7 +114,7 @@ class SeatComponent:
       for seat in self.Seats:
          self.scaledSeats.append(
             {
-            "Pos": (seat["Pos"][0]*scale, seat["Pos"][1]*scale), 
+            "Pos": (seat["Pos"][0]*scale[0], seat["Pos"][1]*scale[1]), 
             "Occupied" : seat["Occupied"]
             })
       
@@ -201,11 +200,11 @@ class Manager:
       #get Components
       if not self.hasComponent(Ent, TransformComponent):
          self.newComponent(Ent, TransformComponent, pygame.Rect(100, 100, 50, 50))
-      transform = self.getComponent(Ent, TransformComponent)
+      transform : TransformComponent = self.getComponent(Ent, TransformComponent)
 
       if not self.hasComponent(Ent, SpriteComponent):
          self.newComponent(Ent, SpriteComponent, (0, 0, 0))
-      sprite = self.getComponent(Ent, SpriteComponent)
+      sprite : SpriteComponent = self.getComponent(Ent, SpriteComponent)
 
       
       #Prepares surface
@@ -215,9 +214,9 @@ class Manager:
 
 
       if self.hasComponent(Ent, VertexComponent):
-         Vertex = self.getComponent(Ent, VertexComponent)
+         Vertex : VertexComponent = self.getComponent(Ent, VertexComponent)
 
-         pygame.draw.polygon(surface, (255, 0, 0), Vertex.getScaledVertex(2))
+         pygame.draw.polygon(surface, (0, 0, 0), Vertex.getScaledVertex(transform.getScale()))
 
 
       else:
