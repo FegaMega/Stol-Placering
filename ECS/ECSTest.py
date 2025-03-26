@@ -27,15 +27,15 @@ class app:
       self.cursorIMG = pygame.SYSTEM_CURSOR_ARROW
       self.screen  = {
          "Viewport" : pygame.display.set_mode((700, 700), vsync=1),
-         "Room" : pygame.Surface((500, 500))
+         "Room" : pygame.Surface((700, 700))
          }
       self.RoomPos = (0, 0)
       self.Event = pygame.event.get()
       self.running = True
       
-      
+      rect = pygame.Rect(200, 200, 100, 100)
       self.debugObj = self.manager.newEntity()
-      self.manager.newComponent(self.debugObj, TransformComponent, pygame.Rect(200, 200, 100, 100))
+      self.manager.newComponent(self.debugObj, TransformComponent, rect)
       self.manager.newComponent(self.debugObj, VertexComponent, [(0, 0), (50, 0), (25, 25), (50, 50), (0, 50)], 1)
 
       seats = [
@@ -58,10 +58,15 @@ class app:
       ]
 
       self.manager.newComponent(self.debugObj, SeatComponent, seats, 2)
+      rect2 = pygame.Rect(rect.topleft, rect.size)
+      rect2.size = [rect.width - 10, rect.height - 10]
 
+      self.manager.newComponent(self.debugObj, CollisionComponent, pygame.Mask(rect.size), rect2)     
+      self.manager.newComponent(self.debugObj, SnapComponent)
+      self.Room["Tables"].append(self.debugObj)
 
 #Main Functions
-   def event(self):
+   def Felicia(self):
 
       self.Event = pygame.event.get()
 
@@ -72,7 +77,7 @@ class app:
             self.running = False
 
 
-   def Update(self):
+   def Morot(self):
 
       pygame.mouse.set_cursor(self.cursorIMG)
       self.cursorIMG = pygame.SYSTEM_CURSOR_ARROW
@@ -82,38 +87,47 @@ class app:
 
       if self.mouseHolding[0] != None:
          
-         transform = self.manager.getComponent(self.mouseHolding[0], TransformComponent)
+         transform : TransformComponent = self.manager.getComponent(self.mouseHolding[0], TransformComponent)
          match self.mouseHolding[1]:
             case "Normal":
-
+               
                transform.rect.center = mousePos
 
-               DebugObjRect = self.manager.getComponent(self.debugObj, TransformComponent).rect
-               seats = self.manager.getComponent(self.debugObj, SeatComponent).getViewportRelativeSeats(2, DebugObjRect)
-               
-               Snap = self.manager.getComponent(self.mouseHolding[0], SnapComponent)
-               print(seats)
+
+               if self.manager.hasComponent(self.mouseHolding[0], SnapComponent):
+                  self.handleSnap(self.mouseHolding[0])
+               Snap : SnapComponent = self.manager.getComponent(self.mouseHolding[0], SnapComponent)               
 
                if Snap.ID[0] != None:
 
-                  Rect = self.manager.getComponent(Snap.ID[0], TransformComponent).rect
-                  Seats = self.manager.getComponent(Snap.ID[0], SeatComponent).getViewportRelativeSeats(2, Rect)
                   
-                  if not mouseCollision(Seats[Snap.ID[1]]["Pos"], transform.rect):
-                     Seats[Snap.ID[1]]["Occupied"] = -1
-                     Snap.ID = (None, -1)
 
-                  else:
-                     transform.rect.center = Seats[Snap.ID[1]]["Pos"]
 
-                     Seats[Snap.ID[1]]["Occupied"] = self.mouseHolding[0]
-               
                else:
                   
+                  DebugObjRect : pygame.Rect = self.manager.getComponent(self.debugObj, TransformComponent).rect
+                  seats : list = self.manager.getComponent(self.debugObj, SeatComponent).getViewportRelativeSeats(2, DebugObjRect)
+                  
                   for x in range(0, len(seats)):
-                     if mouseCollision(seats[x]["Pos"], transform.rect) and seats[x]["Occupied"] == -1:
+                     if mouseCollision(seats[x]["Pos"], transform.rect) and seats[x]["Occupied"] == -1 and self.mouseHolding[0] != self.debugObj:
+
                         Snap.ID = [self.debugObj, x]
+
                         seats[x]["Occupied"] = self.mouseHolding[0]
+
+                        rect = self.manager.getComponent(Snap.ID[0], TransformComponent).rect
+
+                  self.manager.getComponent(self.debugObj, SeatComponent).returnViewportRelativeSeats(2, DebugObjRect, seats)
+
+
+               if self.manager.hasComponent(self.mouseHolding[0], SeatComponent):
+
+                  for seat in self.manager.getComponent(self.mouseHolding[0], SeatComponent).getViewportRelativeSeats(2, transform.rect):
+
+                     if seat["Occupied"] != -1:
+
+                        occuRect = self.manager.getComponent(seat["Occupied"], TransformComponent).rect
+                        occuRect.center = seat["Pos"]
 
 
             case "Edge":
@@ -140,7 +154,7 @@ class app:
 
       return 
 
-   def Render(self):
+   def Groda(self):
       self.screen["Viewport"].fill((0, 0, 0))
       self.screen["Room"].fill((255, 255, 255))
 
@@ -294,16 +308,49 @@ class app:
          
       return self.Room
 
+   def handleSnap(self, EntID):
+      
+      transform = self.manager.getComponent(EntID, TransformComponent)
 
+      Snap = self.manager.getComponent(EntID, SnapComponent)
+
+      Rect = self.manager.getComponent(Snap.ID[0], TransformComponent).rect
+
+      Seats = self.manager.getComponent(Snap.ID[0], SeatComponent).getViewportRelativeSeats(2, Rect)
+
+      if not mouseCollision(Seats[Snap.ID[1]]["Pos"], transform.rect):
+
+         Seats[Snap.ID[1]]["Occupied"] = -1
+
+         rect = self.manager.getComponent(Snap.ID[0], TransformComponent).rect
+         
+         self.manager.getComponent(Snap.ID[0], SeatComponent).returnViewportRelativeSeats(2, rect, Seats)
+         
+         Snap.ID = (None, -1)
+
+      else:
+
+         transform.rect.center = Seats[Snap.ID[1]]["Pos"]
+
+         Seats[Snap.ID[1]]["Occupied"] = self.mouseHolding[0]
+
+         rect = self.manager.getComponent(Snap.ID[0], TransformComponent).rect
+         
+         self.manager.getComponent(Snap.ID[0], SeatComponent).returnViewportRelativeSeats(2, rect, Seats)
+
+def NalaniÄrBäst(): #Formaly known as Main
+
+   App = app()
    
-App = app()
-while App.running:
+   while App.running:
 
-   App.event()
-   
-   App.Update()
+      App.Felicia() #Formaly known as Event
+      
+      App.Morot() #Formaly known as Update
 
-   App.Render()
+      App.Groda() #Formaly known as Render
 
-   pygame.display.update()
-   pygame.time.Clock().tick(60)
+      pygame.display.update()
+      pygame.time.Clock().tick(60)
+
+NalaniÄrBäst()

@@ -74,7 +74,7 @@ class TextComponent:
 
 
 class SnapComponent:
-   def __init__(self, Snapped, ID):
+   def __init__(self, Snapped=False, ID=[None, -1]):
       self.Snapped:bool = Snapped 
       self.ID = ID 
 
@@ -96,6 +96,18 @@ class SeatComponent:
       
       return self.scaledSeats
 
+   def returnViewportRelativeSeats(self, scale, Rect, Seats):
+
+      self.Seats = []
+      for seat in Seats:
+         self.Seats.append(
+            {
+            "Pos" : ((seat["Pos"][0] - Rect.x) / scale, (seat["Pos"][1] - Rect.y) / scale),
+            "Occupied" : seat["Occupied"]
+            }
+         )
+
+      return 
    def getScaledSeats(self, scale):
 
       self.scaledSeats = []
@@ -115,11 +127,14 @@ class Manager:
 
    #Main functions
    def newComponent(self, EntID: int, type, *args):
-      
+      if self.hasComponent(EntID, type):
+         return
+
       T = type(*args)
       
       self.Entitys[EntID].Component[str(type)] = T
 
+      return
    def getComponent(self, EntID, type:object):
       return self.Entitys[EntID].Component[str(type)]
    
@@ -199,11 +214,18 @@ class Manager:
       rect = surface.get_rect()
 
 
-      #Draws main body
-      pygame.draw.rect(surface, sprite.bodyAttributes["color"], rect, border_radius=sprite.bodyAttributes["radius"])
+      if self.hasComponent(Ent, VertexComponent):
+         Vertex = self.getComponent(Ent, VertexComponent)
 
-      pygame.draw.rect(surface, sprite.outlineAttributes["color"], rect, sprite.outlineAttributes["width"], sprite.outlineAttributes["radius"])
-      
+         pygame.draw.polygon(surface, (255, 0, 0), Vertex.getScaledVertex(2))
+
+
+      else:
+         #Draws main body
+         pygame.draw.rect(surface, sprite.bodyAttributes["color"], rect, border_radius=sprite.bodyAttributes["radius"])
+
+         pygame.draw.rect(surface, sprite.outlineAttributes["color"], rect, sprite.outlineAttributes["width"], sprite.outlineAttributes["radius"])
+         
 
       #Draws Text if object has text
       if self.hasComponent(Ent, TextComponent):
