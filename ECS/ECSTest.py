@@ -158,6 +158,7 @@ class app:
                   if Collision.negativeEdge != None:
 
                      Collision.negativeEdge.size = [ transform.rect.width - 10, transform.rect.height - 10 ]
+
                
                #If the object has seats
                if self.manager.hasComponent(self.mouseHolding[0], SeatComponent):
@@ -170,6 +171,7 @@ class app:
                         #Move occupant to new position
                         occuRect = self.manager.getComponent(seat["Occupied"], TransformComponent).rect
                         occuRect.center = seat["Pos"]
+
 
 
       self.mouseSelected = self.getSelected()
@@ -354,37 +356,67 @@ class app:
    def handleSnap(self, EntID):
 
       #Get Snap Component
-      Snap = self.manager.getComponent(EntID, SnapComponent)
+      Snap : SnapComponent = self.manager.getComponent(EntID, SnapComponent)
 
       #Get Transform of EntID
-      transform = self.manager.getComponent(EntID, TransformComponent)
-      
+      Transform : TransformComponent = self.manager.getComponent(EntID, TransformComponent)
+
+      if self.manager.hasComponent(EntID, VertexComponent):
+         VertexComp :VertexComponent= self.manager.getComponent(EntID, VertexComponent)
+         VerticesViewport = VertexComp.getViewportRelativeVertex(Transform.getScale(), Transform.rect)
       if Snap.ID[0] != None:
 
-         #Get the Snapped to objects rect and seats
-         SnappedTransform : TransformComponent = self.manager.getComponent(Snap.ID[0], TransformComponent)
+         if type(Snap.ID[1]) == int:
 
-         SeatComp : SeatComponent = self.manager.getComponent(Snap.ID[0], SeatComponent)
+            #Get the Snapped to objects rect and seats
+            SnappedTransform : TransformComponent = self.manager.getComponent(Snap.ID[0], TransformComponent)
 
-         Seats = SeatComp.getViewportRelativeSeats(SnappedTransform.getScale(), SnappedTransform.rect)
+            SeatComp : SeatComponent = self.manager.getComponent(Snap.ID[0], SeatComponent)
 
-         #If not touching the seat anymore
-         if not pointCollision(Seats[Snap.ID[1]]["Pos"], transform.rect):
+            Seats = SeatComp.getViewportRelativeSeats(SnappedTransform.getScale(), SnappedTransform.rect)
 
-            #Leave seat
-            Seats[Snap.ID[1]]["Occupied"] = -1
+            #If not touching the seat anymore
+            if not pointCollision(Seats[Snap.ID[1]]["Pos"], Transform.rect):
+
+               #Leave seat
+               Seats[Snap.ID[1]]["Occupied"] = -1
+               
+               Snap.ID = (None, -1)
+
+            else:
+
+               Transform.rect.center = Seats[Snap.ID[1]]["Pos"]
+
+               Seats[Snap.ID[1]]["Occupied"] = self.mouseHolding[0]
+               
+            SeatComp.returnViewportRelativeSeats(SnappedTransform.getScale(), SnappedTransform.rect, Seats)
+
+            return
+
+         if type(Snap.ID[1]) == tuple:
             
-            Snap.ID = (None, -1)
+            SnappedTransform : TransformComponent = self.manager.getComponent(Snap.ID[0], TransformComponent)
 
-         else:
+            SnappedVertexComp : VertexComponent = self.manager.getComponent(Snap.ID[0], VertexComponent)
 
-            transform.rect.center = Seats[Snap.ID[1]]["Pos"]
+            SnappedVerticesViewport = SnappedVertexComp.getViewportRelativeVertex(SnappedTransform.getScale(), SnappedTransform.rect)
 
-            Seats[Snap.ID[1]]["Occupied"] = self.mouseHolding[0]
-            
-         SeatComp.returnViewportRelativeSeats(SnappedTransform.getScale(), SnappedTransform.rect, Seats)
+            SnappedVertexViewport = SnappedVerticesViewport[Snap.ID[1][0]]                  
+            VertexViewport = VerticesViewport[Snap.ID[1][1]]
 
-         return
+            if pointCircleCollision(VertexViewport, SnappedVertexViewport, 10):
+
+               VertexScaled = VertexComp.getScaledVertex(Transform.getScale())[Snap[1][1]]
+               pos = [0, 0]
+
+               pos[0] = SnappedVertexViewport[0] - VertexScaled[0]
+               pos[1] = SnappedVertexViewport[1] - VertexScaled[1]
+
+               Transform.rect.topleft = pos
+               
+            else:
+
+               Snap.ID = (None, -1)
 
       else:
          
@@ -399,7 +431,7 @@ class app:
             
             for x in range(0, len(seats)):
 
-               if pointCollision(seats[x]["Pos"], transform.rect) and seats[x]["Occupied"] == -1 and self.mouseHolding[0] != table:
+               if pointCollision(seats[x]["Pos"], Transform.rect) and seats[x]["Occupied"] == -1 and self.mouseHolding[0] != table:
 
                   Snap.ID = [table, x]
 
@@ -408,6 +440,11 @@ class app:
                   SeatComp.returnViewportRelativeSeats(TableTransform.getScale(), TableTransform.rect, seats)
 
                   return
+            
+            if self.manager.hasComponent(self.mouseHolding[0], VertexComponent):
+               
+               Snap.ID = self.SnappToVertex(self.mouseHolding[0])
+
 
    def SnappToVertex(self, heldEnt:int):
 
@@ -417,12 +454,15 @@ class app:
 
       for table in self.Room["Tables"]:
 
-         tableTransform : TransformComponent = self.manager.getComponent(table, Transform)
+         tableTransform : TransformComponent = self.manager.getComponent(table, TransformComponent)
          
+         if not self.manager.hasComponent(table, VertexComponent):
+            continue
+
          if rectCollision(Transform.rect, tableTransform.rect):
 
             tableVertex : VertexComponent = self.manager.getComponent(table, VertexComponent)
-            Vertices = Vertex.getViewportRelativeVertex(Transform.getScale, Transform.rect)
+            Vertices = Vertex.getViewportRelativeVertex(Transform.getScale(), Transform.rect)
             
             for Vertex in Vertices:
                
@@ -432,7 +472,8 @@ class app:
 
                   if pointCircleCollision(Vertex, tableVertex, 10):
 
-                     return table, tableVertices.index(tableVertex), Vertices.index(Vertex)
+                     return table, (tableVertices.index(tableVertex), Vertices.index(Vertex))
+      return None, 0
 
 
 def NalaniÄrBäst(): #Formaly known as Main
