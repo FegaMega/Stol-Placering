@@ -1,7 +1,7 @@
 import pygame
 import math
 
-def mouseCollision(A, B:pygame.Rect):
+def pointCollision(A, B:pygame.Rect):
     return (A[0] >= B.x and A[0] < B.x + B.width) and (A[1] >= B.y and A[1] < B.y + B.height)
 
 
@@ -57,6 +57,14 @@ class VertexComponent:
          self.scaledVertex.append((pos[0]*scale[0], pos[1]*scale[1]))
       
       return self.scaledVertex
+
+   def getViewportRelativeVertex(self, scale, rect):
+      relativeVertex = []
+
+      for pos in self.Vertex:
+         relativeVertex.append((pos[0]*scale[0]+rect.x, pos[1]*scale[1]+rect.y))
+
+      return relativeVertex
 
 class CollisionComponent:
    def __init__(self, mask, negativeEdge:pygame.Rect=None):
@@ -134,13 +142,13 @@ class Manager:
       self.Entitys[EntID].Component[str(type)] = T
 
       return
-   def getComponent(self, EntID, type:object):
+   def getComponent(self, EntID, type:object) -> object:
       return self.Entitys[EntID].Component[str(type)]
    
-   def hasComponent(self, EntID, type):
+   def hasComponent(self, EntID, type) -> bool:
       return str(type) in self.Entitys[EntID].Component
    
-   def newEntity(self):
+   def newEntity(self) -> int:
 
       ent = Entity()
       
@@ -169,7 +177,7 @@ class Manager:
       
       transform = self.getComponent(Ent, TransformComponent)
 
-      if mouseCollision(mousePos, transform.rect):
+      if pointCollision(mousePos, transform.rect):
          
          if not self.hasComponent(Ent, CollisionComponent):
             return True, "Normal"
@@ -186,7 +194,7 @@ class Manager:
             
             collision.negativeEdge.topleft = transform.rect.topleft
 
-            if mouseCollision(mousePos, collision.negativeEdge):
+            if pointCollision(mousePos, collision.negativeEdge):
      
                return True, "Normal"
       

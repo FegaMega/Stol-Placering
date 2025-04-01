@@ -14,8 +14,16 @@ def getRoomCursorPos(RoomTopLeft):
 
    )
 
-def mouseCollision(A, B:pygame.Rect):
+def pointCollision(A, B:pygame.Rect):
     return (A[0] >= B.x and A[0] <= B.x + B.width) and (A[1] >= B.y and A[1] <= B.y + B.height)
+
+def rectCollision(A:pygame.Rect, B:pygame.Rect):
+    return (A.x + A.width > B.x) and (A.x < B.x + B.width) and (A.y + A.height > B.y) and (A.y < B.y + B.height)
+
+def pointCircleCollision(A, Bc, Bd):
+    Diffrence = [Bc[0]-A[0], Bc[1]-A[1]]
+    D2 = math.sqrt(Diffrence[0]**2 + Diffrence[1]**2)
+    return D2 <= Bd/2
 
 #If you are confused about some weird names, just ask Nalani
 
@@ -125,6 +133,7 @@ class app:
 
                if self.manager.hasComponent(self.mouseHolding[0], SnapComponent): 
                   self.handleSnap(self.mouseHolding[0])
+
 
                #If the object has seats
                if self.manager.hasComponent(self.mouseHolding[0], SeatComponent):
@@ -360,7 +369,7 @@ class app:
          Seats = SeatComp.getViewportRelativeSeats(SnappedTransform.getScale(), SnappedTransform.rect)
 
          #If not touching the seat anymore
-         if not mouseCollision(Seats[Snap.ID[1]]["Pos"], transform.rect):
+         if not pointCollision(Seats[Snap.ID[1]]["Pos"], transform.rect):
 
             #Leave seat
             Seats[Snap.ID[1]]["Occupied"] = -1
@@ -390,7 +399,7 @@ class app:
             
             for x in range(0, len(seats)):
 
-               if mouseCollision(seats[x]["Pos"], transform.rect) and seats[x]["Occupied"] == -1 and self.mouseHolding[0] != table:
+               if pointCollision(seats[x]["Pos"], transform.rect) and seats[x]["Occupied"] == -1 and self.mouseHolding[0] != table:
 
                   Snap.ID = [table, x]
 
@@ -399,6 +408,31 @@ class app:
                   SeatComp.returnViewportRelativeSeats(TableTransform.getScale(), TableTransform.rect, seats)
 
                   return
+
+   def SnappToVertex(self, heldEnt:int):
+
+      Transform : TransformComponent = self.manager.getComponent(heldEnt, TransformComponent)
+
+      Vertex : VertexComponent = self.manager.getComponent(heldEnt, VertexComponent)
+
+      for table in self.Room["Tables"]:
+
+         tableTransform : TransformComponent = self.manager.getComponent(table, Transform)
+         
+         if rectCollision(Transform.rect, tableTransform.rect):
+
+            tableVertex : VertexComponent = self.manager.getComponent(table, VertexComponent)
+            Vertices = Vertex.getViewportRelativeVertex(Transform.getScale, Transform.rect)
+            
+            for Vertex in Vertices:
+               
+               tableVertices = tableVertex.getViewportRelativeVertex(tableTransform.getScale(), tableTransform.rect)
+               
+               for tableVertex in tableVertices:
+
+                  if pointCircleCollision(Vertex, tableVertex, 10):
+
+                     return table, tableVertices.index(tableVertex), Vertices.index(Vertex)
 
 
 def NalaniÄrBäst(): #Formaly known as Main
