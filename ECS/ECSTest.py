@@ -362,8 +362,11 @@ class app:
       Transform : TransformComponent = self.manager.getComponent(EntID, TransformComponent)
 
       if self.manager.hasComponent(EntID, VertexComponent):
-         VertexComp :VertexComponent= self.manager.getComponent(EntID, VertexComponent)
+         
+         VertexComp : VertexComponent= self.manager.getComponent(EntID, VertexComponent)
+         
          VerticesViewport = VertexComp.getViewportRelativeVertex(Transform.getScale(), Transform.rect)
+         
       if Snap.ID[0] != None:
 
          if type(Snap.ID[1]) == int:
@@ -406,7 +409,7 @@ class app:
 
             if pointCircleCollision(VertexViewport, SnappedVertexViewport, 10):
 
-               VertexScaled = VertexComp.getScaledVertex(Transform.getScale())[Snap[1][1]]
+               VertexScaled = VertexComp.getScaledVertex(Transform.getScale())[Snap.ID[1][1]]
                pos = [0, 0]
 
                pos[0] = SnappedVertexViewport[0] - VertexScaled[0]
@@ -450,7 +453,7 @@ class app:
 
       Transform : TransformComponent = self.manager.getComponent(heldEnt, TransformComponent)
 
-      Vertex : VertexComponent = self.manager.getComponent(heldEnt, VertexComponent)
+      VertexComp : VertexComponent = self.manager.getComponent(heldEnt, VertexComponent)
 
       for table in self.Room["Tables"]:
 
@@ -461,12 +464,12 @@ class app:
 
          if rectCollision(Transform.rect, tableTransform.rect):
 
-            tableVertex : VertexComponent = self.manager.getComponent(table, VertexComponent)
-            Vertices = Vertex.getViewportRelativeVertex(Transform.getScale(), Transform.rect)
+            tableVertexComp : VertexComponent = self.manager.getComponent(table, VertexComponent)
+            Vertices = VertexComp.getViewportRelativeVertex(Transform.getScale(), Transform.rect)
             
             for Vertex in Vertices:
                
-               tableVertices = tableVertex.getViewportRelativeVertex(tableTransform.getScale(), tableTransform.rect)
+               tableVertices = tableVertexComp.getViewportRelativeVertex(tableTransform.getScale(), tableTransform.rect)
                
                for tableVertex in tableVertices:
 
