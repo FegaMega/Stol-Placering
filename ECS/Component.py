@@ -128,6 +128,22 @@ class SeatComponent:
       
       return self.scaledSeats
 
+
+class ListEntitysComponent:
+   def __init__(self, List, Type):
+      
+      self.List = List
+      self.Type = Type
+
+   def Remove(self, manager):
+      for Ent in self.List:
+         manager.delEntity(Ent)
+      self.List = []
+      self.Type = ""
+         
+         
+
+
 class Manager:
    def __init__(self):
       self.Entitys = []
@@ -165,6 +181,12 @@ class Manager:
       return self.Entitys.index(ent)
 
    def delEntity(self, EntID):
+      
+      if self.hasComponent(EntID, ListEntitysComponent):
+      
+         listComp = self.getComponent(EntID, ListEntitysComponent)
+         listComp.Remove()
+
       self.Entitys[EntID] = None
       return 0
 
