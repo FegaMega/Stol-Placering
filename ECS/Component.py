@@ -1,8 +1,89 @@
 import pygame
 import math
+from multipledispatch import dispatch
 
-def pointCollision(A, B:pygame.Rect):
-    return (A[0] >= B.x and A[0] < B.x + B.width) and (A[1] >= B.y and A[1] < B.y + B.height)
+class angularPosition:
+
+    def __init__(self, angle, radius):
+        self.angle = angle
+        self.radius = radius
+
+@dispatch(float, float)
+def AngularToLinearPosition(angle, radius) -> pygame.Vector2:
+
+    pos = pygame.Vector2(0, 0)
+
+    pos.x = math.cos(math.radians(angle))*radius
+    pos.y = math.sin(math.radians(angle))*radius
+
+    return pos
+
+@dispatch(float, int)
+def AngularToLinearPosition(angle, radius) -> pygame.Vector2:
+
+    pos = pygame.Vector2(0, 0)
+
+    pos.x = math.cos(math.radians(angle))*radius
+    pos.y = -math.sin(math.radians(angle))*radius
+
+    return pos
+
+@dispatch(angularPosition)
+def AngularToLinearPosition(angularPos : angularPosition) -> pygame.Vector2:
+
+    pos = pygame.Vector2(0, 0)
+
+    pos.x = math.cos(math.radians(angularPos.angle))*angularPos.radius
+    pos.y = -math.sin(math.radians(angularPos.angle))*angularPos.radius
+
+    return pos
+
+@dispatch(tuple)
+def LinearToAngluarPosition(Pos:tuple) -> angularPosition:
+
+    Pos:list = list(Pos)
+    #Don't know if this is correct math, but I hope it is 
+    if Pos[0] == 0:
+        Pos[0] = 0.00000001
+
+
+
+    angle = math.degrees(math.atan(abs(Pos[1])/abs(Pos[0])))
+
+    if Pos[0] < 0:
+        angle = 180 - angle
+
+    if Pos[1] < 0:
+        angle = -angle
+    
+
+    radius = math.sqrt(Pos[0]**2 + Pos[1]**2)
+
+    return angularPosition(angle, radius)
+
+@dispatch(pygame.Vector2)
+def LinearToAngluarPosition(Pos:pygame.Vector2) -> angularPosition:
+    
+    if Pos.x == 0:
+        Pos.x = 0.00000001
+    #Don't know if this is correct math, but I hope it is 
+
+
+    angle = math.degrees(math.atan(abs(Pos.y)/abs(Pos.x)))
+
+    if Pos.x < 0:
+        angle = 180 - angle
+
+    if Pos.y < 0:
+        angle = -angle
+
+
+    radius = math.sqrt(Pos.x**2 + Pos.y**2)
+
+    return angularPosition(angle, radius)
+
+def pointCollision(A : pygame.Vector2, B:pygame.Rect):
+    return (A.x >= B.x and A.x < B.x + B.width) and (A.y >= B.y and A.y < B.y + B.height)
 
 
 def getTextEvent(text:str, Event):
@@ -28,7 +109,7 @@ class TransformComponent:
       self.orgSize = rect.size
       self.isMaster = Master
    def getScale(self) -> tuple:
-      return (self.rect.width / self.orgSize[0], self.rect.height / self.orgSize[1])
+      return pygame.Vector2(self.rect.width / self.orgSize[0], self.rect.height / self.orgSize[1])
    
 class SpriteComponent:
    def __init__(self, color, radius=10, outlineColor=(0, 0, 0), outlineWidth=0):
@@ -46,25 +127,25 @@ class SpriteComponent:
 
 
 class VertexComponent:
-   def __init__(self, Vertex):
-      self.Vertex = Vertex
+   def __init__(self, Vertices):
+      self.Vertices = Vertices
 
-   def getScaledVertex(self, scale):
+   def getScaledVertices(self, scale):
 
-      self.scaledVertex = []
+      scaledVertices = []
 
-      for pos in self.Vertex:
-         self.scaledVertex.append((pos[0]*scale[0], pos[1]*scale[1]))
+      for pos in self.Vertices:
+         scaledVertices.append(pygame.Vector2(pos.x*scale.x, pos.y*scale.y))
       
-      return self.scaledVertex
+      return scaledVertices
 
-   def getViewportRelativeVertex(self, scale, rect):
-      relativeVertex = []
+   def getViewportRelativeVertices(self, scale, rect):
+      relativeVertices = []
 
-      for pos in self.Vertex:
-         relativeVertex.append((pos[0]*scale[0]+rect.x, pos[1]*scale[1]+rect.y))
+      for pos in self.Vertices:
+         relativeVertices.append(pygame.Vector2(pos.x*scale.x+rect.x, pos.y*scale.y+rect.y))
 
-      return relativeVertex
+      return relativeVertices
 
 class CollisionComponent:
    def __init__(self, mask, negativeEdge:pygame.Rect=None):
@@ -82,7 +163,7 @@ class TextComponent:
 
 
 class SnapComponent:
-   def __init__(self, Snapped=False, ID=[None, -1]):
+   def __init__(self, Snapped=False, ID=[pygame.Vector2(0, 0)]):
       self.Snapped:bool = Snapped 
       self.ID = ID 
 
@@ -97,7 +178,7 @@ class SeatComponent:
       for seat in self.Seats:
          self.scaledSeats.append(
             {
-            "Pos": ((seat["Pos"][0] * scale[0]) + Rect.x, (seat["Pos"][1] * scale[1]) + Rect.y), 
+            "Pos": pygame.Vector2((seat["Pos"].x * scale.x) + Rect.x, (seat["Pos"].y * scale.y) + Rect.y), 
             "Occupied" : seat["Occupied"]
             })
       
@@ -109,7 +190,7 @@ class SeatComponent:
       for seat in Seats:
          self.Seats.append(
             {
-            "Pos" : ((seat["Pos"][0] - Rect.x) / scale[0], (seat["Pos"][1] - Rect.y) / scale[1]),
+            "Pos" : pygame.Vector2((seat["Pos"].x - Rect.x) / scale.x, (seat["Pos"].y - Rect.y) / scale.y),
             "Occupied" : seat["Occupied"]
             }
          )
@@ -122,7 +203,7 @@ class SeatComponent:
       for seat in self.Seats:
          self.scaledSeats.append(
             {
-            "Pos": (seat["Pos"][0]*scale[0], seat["Pos"][1]*scale[1]), 
+            "Pos": (seat["Pos"].x*scale.x, seat["Pos"].y*scale.y), 
             "Occupied" : seat["Occupied"]
             })
       
@@ -246,7 +327,9 @@ class Manager:
       if self.hasComponent(Ent, VertexComponent):
          Vertex : VertexComponent = self.getComponent(Ent, VertexComponent)
 
-         pygame.draw.polygon(surface, (0, 0, 0), Vertex.getScaledVertex(transform.getScale()))
+         print(Vertex.getScaledVertices(transform.getScale()))
+
+         pygame.draw.polygon(surface, (0, 0, 0), Vertex.getScaledVertices(transform.getScale()))
 
 
       else:

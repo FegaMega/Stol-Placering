@@ -8,20 +8,16 @@ def getCenter(surface:pygame.Surface):
    return (surface.get_width()/2, surface.get_height()/2)
 
 def getRoomCursorPos(RoomTopLeft):
-   return (
+   return pygame.Vector2 (
       pygame.mouse.get_pos()[0] - RoomTopLeft[0],
       pygame.mouse.get_pos()[1] - RoomTopLeft[1]
-
    )
-
-def pointCollision(A, B:pygame.Rect):
-    return (A[0] >= B.x and A[0] <= B.x + B.width) and (A[1] >= B.y and A[1] <= B.y + B.height)
 
 def rectCollision(A:pygame.Rect, B:pygame.Rect):
     return (A.x + A.width > B.x) and (A.x < B.x + B.width) and (A.y + A.height > B.y) and (A.y < B.y + B.height)
 
 def pointCircleCollision(A, Bc, Bd):
-    Diffrence = [Bc[0]-A[0], Bc[1]-A[1]]
+    Diffrence = [Bc[0]-A.x, Bc[1]-A.y]
     D2 = math.sqrt(Diffrence[0]**2 + Diffrence[1]**2)
     return D2 <= Bd/2
 
@@ -34,56 +30,56 @@ class app:
       self.TableTypes = {
          "Rectangular" : {
             "Vertex" : [
-               (0, 0), 
-               (100, 0), 
-               (100, 50), 
-               (0, 50)
+               pygame.Vector2(0, 0), 
+               pygame.Vector2(100, 0), 
+               pygame.Vector2(100, 50), 
+               pygame.Vector2(0, 50)
             ],
             "Seats" : [
                {
-                  "Pos" : (25, 0),
+                  "Pos" : pygame.Vector2(25, 0),
                   "Occupied" : -1
                }, 
                {
-                  "Pos" : (75, 0),
+                  "Pos" : pygame.Vector2(75, 0),
                   "Occupied" : -1
                }, 
                {
-                  "Pos" : (100, 25),
+                  "Pos" : pygame.Vector2(100, 25),
                   "Occupied" : -1
                }, 
                {
-                  "Pos" : (75, 50),
+                  "Pos" : pygame.Vector2(75, 50),
                   "Occupied" : -1
                }, 
                {
-                  "Pos" : (25, 50),
+                  "Pos" : pygame.Vector2(25, 50),
                   "Occupied" : -1
                }, 
                {
-                  "Pos" : (0, 25),
+                  "Pos" : pygame.Vector2(0, 25),
                   "Occupied" : -1
                }
             ]
          },
          "Trapezoid" : {
             "Vertex" : [
-               (50, 0), 
-               (150, 0),
-               (200, 100), 
-               (0, 100)
+               pygame.Vector2(50, 0), 
+               pygame.Vector2(150, 0),
+               pygame.Vector2(200, 100), 
+               pygame.Vector2(0, 100)
             ],
             "Seats" : [
                {
-                  "Pos" : (100, 0),
+                  "Pos" : pygame.Vector2(100, 0),
                   "Occupied" : -1
                }, 
                {
-                  "Pos" : (50, 100),
+                  "Pos" : pygame.Vector2(50, 100),
                   "Occupied" : -1
                }, 
                {
-                  "Pos" : (150, 100),
+                  "Pos" : pygame.Vector2(150, 100),
                   "Occupied" : -1
                }
             ]
@@ -99,7 +95,7 @@ class app:
          }
       
 
-      self.RoomPos = (0, 0)
+      self.RoomPos = pygame.Vector2(0, 0)
       self.Event = pygame.event.get()
       self.running = True
       
@@ -160,7 +156,7 @@ class app:
 
                Seats = SeatComp.getViewportRelativeSeats(SnappedTransform.getScale(), SnappedTransform.rect)
 
-               transform.rect.center = Seats[Snap.ID[1]]["Pos"]
+               transform.rect.center = Seats[Snap.ID[1]]["Pos"].xy
                
 
          if r == 1:
@@ -191,11 +187,11 @@ class app:
 
                         #Move occupant to new position
                         occuRect = self.manager.getComponent(seat["Occupied"], TransformComponent).rect
-                        occuRect.center = seat["Pos"]
+                        occuRect.center = seat["Pos"].xy
 
 
             case "Edge":
-               transform.rect.size = [max(mousePos[0] - transform.rect.x, 25), max(mousePos[1] - transform.rect.y, 25)]
+               transform.rect.size = [max(mousePos.x - transform.rect.x, 25), max(mousePos.y - transform.rect.y, 25)]
                
                if self.manager.hasComponent(self.mouseHolding[0], CollisionComponent):
                
@@ -257,7 +253,7 @@ class app:
     #Moves backwards so the top most table get picked first   
       for x in range(len(self.Room["Tables"])-1, -1, -1):
    
-         result, flag = self.manager.CheckCollision(self.Room["Tables"][x], (mousePos))
+         result, flag = self.manager.CheckCollision(self.Room["Tables"][x], mousePos)
     
          if result:
     
@@ -363,7 +359,10 @@ class app:
 
          rect = pygame.Rect(150*i, 200, 50, 100)
          self.createTable("Trapezoid", rect)
-         
+
+      rect = pygame.Rect(250, 300, 50, 100)
+      self.createTable("Rectangular", rect)
+
       return self.Room
 
    def handleSnap(self, EntID):
@@ -374,19 +373,30 @@ class app:
       #Get Transform of EntID
       Transform : TransformComponent = self.manager.getComponent(EntID, TransformComponent)
 
+      #If the EntID has VertexComponent we have to grab that and the Vertices (ViewportRelative)
       if self.manager.hasComponent(EntID, VertexComponent):
          
          VertexComp : VertexComponent= self.manager.getComponent(EntID, VertexComponent)
          
-         VerticesViewport = VertexComp.getViewportRelativeVertex(Transform.getScale(), Transform.rect)
+         VerticesViewport = VertexComp.getViewportRelativeVertices(Transform.getScale(), Transform.rect)
          
-      if Snap.ID[0] != None:
+      if Snap.ID[0] == None:
+         
+         if self.manager.hasComponent(self.mouseHolding[0], VertexComponent) and self.manager.hasComponent(self.mouseHolding[0], SeatComponent):
+                  
+            Snap.ID = self.SnappToVertex(self.mouseHolding[0])
+
+            return 
+         
+         self.SnappToSeat(self.mouseHolding[0])
+      else:
 
          if type(Snap.ID[1]) == int:
 
             #Get the Snapped to objects rect and seats
             SnappedTransform : TransformComponent = self.manager.getComponent(Snap.ID[0], TransformComponent)
-
+            
+            #Get the seat that EntID is snapped to (ViewportRelative)
             SeatComp : SeatComponent = self.manager.getComponent(Snap.ID[0], SeatComponent)
 
             Seats = SeatComp.getViewportRelativeSeats(SnappedTransform.getScale(), SnappedTransform.rect)
@@ -394,7 +404,7 @@ class app:
             #If not touching the seat anymore
             if not pointCollision(Seats[Snap.ID[1]]["Pos"], Transform.rect):
 
-               #Leave seat
+               #Leave seat both for EntID and for the seat
                Seats[Snap.ID[1]]["Occupied"] = -1
                
                Snap.ID = (None, -1)
@@ -415,18 +425,18 @@ class app:
 
             SnappedVertexComp : VertexComponent = self.manager.getComponent(Snap.ID[0], VertexComponent)
 
-            SnappedVerticesViewport = SnappedVertexComp.getViewportRelativeVertex(SnappedTransform.getScale(), SnappedTransform.rect)
+            SnappedVerticesViewport = SnappedVertexComp.getViewportRelativeVertices(SnappedTransform.getScale(), SnappedTransform.rect)
 
             SnappedVertexViewport = SnappedVerticesViewport[Snap.ID[1][0]]                  
             VertexViewport = VerticesViewport[Snap.ID[1][1]]
 
             if pointCircleCollision(VertexViewport, SnappedVertexViewport, 25):
 
-               VertexScaled = VertexComp.getScaledVertex(Transform.getScale())[Snap.ID[1][1]]
-               pos = [0, 0]
+               VertexScaled = VertexComp.getScaledVertices(Transform.getScale())[Snap.ID[1][1]]
+               pos = pygame.Vector2(0, 0)
 
-               pos[0] = SnappedVertexViewport[0] - VertexScaled[0]
-               pos[1] = SnappedVertexViewport[1] - VertexScaled[1]
+               pos.x = SnappedVertexViewport.x - VertexScaled.y
+               pos.y = SnappedVertexViewport.x - VertexScaled.y
 
                Transform.rect.topleft = pos
                
@@ -434,15 +444,6 @@ class app:
 
                Snap.ID = (None, -1)
 
-      else:
-         
-         if self.manager.hasComponent(self.mouseHolding[0], VertexComponent) and self.manager.hasComponent(self.mouseHolding[0], SeatComponent):
-                  
-            Snap.ID = self.SnappToVertex(self.mouseHolding[0])
-
-            return 
-         
-         self.SnappToSeat(self.mouseHolding[0])
 
    def SnappToSeat(self, heldEnt:int):
 
@@ -488,10 +489,10 @@ class app:
          tableTransform : TransformComponent = self.manager.getComponent(table, TransformComponent)
 
          tableVertexComp : VertexComponent = self.manager.getComponent(table, VertexComponent)
-         tableVertices = tableVertexComp.getViewportRelativeVertex(tableTransform.getScale(), tableTransform.rect)
+         tableVertices = tableVertexComp.getViewportRelativeVertices(tableTransform.getScale(), tableTransform.rect)
 
 
-         Vertices = VertexComp.getViewportRelativeVertex(Transform.getScale(), Transform.rect)
+         Vertices = VertexComp.getViewportRelativeVertices(Transform.getScale(), Transform.rect)
          
          for Vertex in Vertices:
                            
@@ -502,6 +503,8 @@ class app:
                   return table, (tableVertices.index(tableVertex), Vertices.index(Vertex))
 
       return None, 0
+   
+
    def DropDownMenu(self, ent):
 
       menu = self.CreateDropDown(ent)
@@ -538,10 +541,10 @@ def NalaniÄrBäst(): #Formaly known as Main
       App.Felicia() #Formaly known as Event
       
       App.Morot() #Formaly known as Update
-
+      
       App.Groda() #Formaly known as Render
 
       pygame.display.update()
       pygame.time.Clock().tick(60)
-
+   
 NalaniÄrBäst()
