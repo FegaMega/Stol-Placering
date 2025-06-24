@@ -327,8 +327,6 @@ class Manager:
       if self.hasComponent(Ent, VertexComponent):
          Vertex : VertexComponent = self.getComponent(Ent, VertexComponent)
 
-         print(Vertex.getScaledVertices(transform.getScale()))
-
          pygame.draw.polygon(surface, (0, 0, 0), Vertex.getScaledVertices(transform.getScale()))
 
 

@@ -174,6 +174,7 @@ class app:
                transform.rect.center = mousePos
 
                if self.manager.hasComponent(self.mouseHolding[0], SnapComponent): 
+                  
                   self.handleSnap(self.mouseHolding[0])
 
 
@@ -390,6 +391,8 @@ class app:
          
          self.SnappToSeat(self.mouseHolding[0])
       else:
+         
+         print(Snap.ID)
 
          if type(Snap.ID[1]) == int:
 
