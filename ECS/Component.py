@@ -162,11 +162,6 @@ class TextComponent:
       self.rect = self.Sprite.get_rect()
 
 
-class SnapComponent:
-   def __init__(self, Snapped=False, ID=[pygame.Vector2(0, 0)]):
-      self.Snapped:bool = Snapped 
-      self.ID = ID 
-
 class SeatComponent:
    def __init__(self, seats:list):
       self.Seats = seats
@@ -208,7 +203,6 @@ class SeatComponent:
             })
       
       return self.scaledSeats
-
 
 class ListEntitysComponent:
    def __init__(self, List, Type):
@@ -354,6 +348,18 @@ class Manager:
       #Finaly draws object on screen
       screen.blit(surface, transform.rect)
 
+   def SnapSeated(self, table):
+
+      transform : TransformComponent = self.getComponent(table, TransformComponent)
+
+      for seat in self.getComponent(table, SeatComponent).getViewportRelativeSeats(transform.getScale(), transform.rect):
+         
+         #If seat is not empty
+         if seat["Occupied"] != -1:
+
+            #Move occupant to new position
+            occuRect = self.getComponent(seat["Occupied"], TransformComponent).rect
+            occuRect.center = seat["Pos"]
 
    def changeName(self, Ent, Event):
 
