@@ -1,4 +1,4 @@
-from GeneralFuntions import * 
+from ECS.GeneralFuntions import * 
 
 def getSettings():
    try :

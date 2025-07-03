@@ -1,5 +1,5 @@
 import Objects as Objects, math, pygame
-from GeneralFuntions import *
+from ECS.GeneralFuntions import *
 
 def RectangleMouseCollision(pos, T):
    
