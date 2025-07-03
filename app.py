@@ -4,7 +4,7 @@ import RoomHandler
 import SettingsHandler
 import math
 import Objects
-from ECS.GeneralFuntions import *
+from GeneralFuntions import *
 
 class App:
 
@@ -92,7 +92,7 @@ class App:
    #Daughter Functions
    def getHolding(self) -> object:
 
-      hover = self.getObjectAtPoint()
+      hover = self.getHover()
       
       #Nice Cursor change for ease of use 
       if hover[0] != None:
@@ -132,29 +132,30 @@ class App:
 
       #Select if right mouse button is pressed
       if pygame.mouse.get_pressed()[2]:
-         return self.getObjectAtPoint()[0]
+         return self.getHover()[0]
 
       return None
       
 
-   def getObjectAtPoint(self, pos) -> list:
+   def getHover(self) -> list:
+      mousePos = pygame.mouse.get_pos()
       #Moves backwards so the top most person get picked first
       for x in range(len(self.Room["People"])-1, -1, -1):
          
          person = self.Room["People"][x]
 
-         if mouseCollision(pos, person.rect): return person, "Normal"
+         if mouseCollision(mousePos, person.rect): return person, "Normal"
 
       #Moves backwards so the top most table get picked first   
       for x in range(len(self.Room["Tables"])-1, -1, -1):
 
-         result, flag = self.Room["Tables"][x].getMouseTouching(pos)
+         result, flag = self.Room["Tables"][x].getMouseTouching(mousePos)
 
          if result:
 
             return self.Room["Tables"][x], flag 
       
-      result, flag = self.Room["Tavla"].getMouseTouching(pos)
+      result, flag = self.Room["Tavla"].getMouseTouching(mousePos)
       if result: return self.Room["Tavla"], flag
 
       return [None, ""]

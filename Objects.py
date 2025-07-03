@@ -1,5 +1,5 @@
 import pygame, math
-from ECS. GeneralFuntions import *
+from GeneralFuntions import *
 
 class Table:
 
