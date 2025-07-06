@@ -85,6 +85,8 @@ def LinearToAngluarPosition(Pos:pygame.Vector2) -> angularPosition:
 def pointCollision(A : pygame.Vector2, B:pygame.Rect):
     return (A.x >= B.x and A.x < B.x + B.width) and (A.y >= B.y and A.y < B.y + B.height)
 
+def distance(A : pygame.Vector2, B : pygame.Vector2):
+   return math.sqrt((A.x - B.x)**2 + (A.x - B.x)**2)
 
 def getTextEvent(text:str, Event):
    for event in Event:
@@ -106,10 +108,11 @@ class Entity:
 class TransformComponent:
    def __init__(self, rect, Master=True):
       self.rect :pygame.Rect= rect
-      self.orgSize = rect.size
+      self.angle = 45
+      self.scale = 1
       self.isMaster = Master
    def getScale(self) -> tuple:
-      return pygame.Vector2(self.rect.width / self.orgSize[0], self.rect.height / self.orgSize[1])
+      return self.scale
    
 class SpriteComponent:
    def __init__(self, color, radius=10, outlineColor=(0, 0, 0), outlineWidth=0):
@@ -135,15 +138,99 @@ class VertexComponent:
       scaledVertices = []
 
       for pos in self.Vertices:
-         scaledVertices.append(pygame.Vector2(pos.x*scale.x, pos.y*scale.y))
+         scaledVertices.append(pygame.Vector2(pos.x*scale, pos.y*scale))
       
       return scaledVertices
+   
+   def getViewportRelativeScaledAndRotatedVertices(self, scale, angle, rect):
+      
+      rect:pygame.Rect
+      Vertices = []
+
+      for pos in self.Vertices:
+         Vertices.append(pygame.Vector2(pos.x*scale, pos.y*scale).rotate(angle) + rect.topleft)
+      
+      return Vertices
+   
+   def getScaledAndRotatedVertices(self, scale, angle):
+      
+      rect:pygame.Rect
+      Vertices = []
+      smallestPos = pygame.Vector2(0, 0)
+
+      for vertex in self.Vertices:
+         
+         pos = pygame.Vector2(vertex.x*scale, vertex.y*scale).rotate(angle)
+         
+         Vertices.append(pos)
+
+         if pos.x < smallestPos.x:
+            smallestPos.x = pos.x
+         
+         if pos.y < smallestPos.y:
+            smallestPos.y = pos.y
+
+      for vertex in Vertices:
+         vertex.x -= smallestPos.x
+         vertex.y -= smallestPos.y
+      
+      return Vertices
+
+   def getScaledAndRotatedSize(self, scale, angle):
+      
+      rect:pygame.Rect
+      Vertices = []
+      smallestPos = pygame.Vector2(0, 0)
+      biggestPos = pygame.Vector2(0, 0)
+
+      for vertex in self.Vertices:
+         
+         pos = pygame.Vector2(vertex.x*scale, vertex.y*scale).rotate(angle)
+
+         if pos.x < smallestPos.x:
+            smallestPos.x = pos.x
+         
+         if pos.y < smallestPos.y:
+            smallestPos.y = pos.y
+         
+         if pos.x > biggestPos.x:
+            biggestPos.x = pos.x
+         
+         if pos.y > biggestPos.y:
+            biggestPos.y = pos.y
+      
+      return pygame.Vector2(biggestPos.x - smallestPos.x, biggestPos.y - smallestPos.y)
+   
+   def getRotatedSize(self, angle):
+      
+      rect:pygame.Rect
+      Vertices = []
+      smallestPos = pygame.Vector2(0, 0)
+      biggestPos = pygame.Vector2(0, 0)
+
+      for vertex in self.Vertices:
+         
+         pos = pygame.Vector2(vertex.x, vertex.y).rotate(angle)
+
+         if pos.x < smallestPos.x:
+            smallestPos.x = pos.x
+         
+         if pos.y < smallestPos.y:
+            smallestPos.y = pos.y
+         
+         if pos.x > biggestPos.x:
+            biggestPos.x = pos.x
+         
+         if pos.y > biggestPos.y:
+            biggestPos.y = pos.y
+      
+      return pygame.Vector2(biggestPos.x - smallestPos.x, biggestPos.y - smallestPos.y)
 
    def getViewportRelativeVertices(self, scale, rect):
       relativeVertices = []
 
       for pos in self.Vertices:
-         relativeVertices.append(pygame.Vector2(pos.x*scale.x+rect.x, pos.y*scale.y+rect.y))
+         relativeVertices.append(pygame.Vector2(pos.x*scale+rect.x, pos.y*scale+rect.y))
 
       return relativeVertices
 
@@ -173,7 +260,7 @@ class SeatComponent:
       for seat in self.Seats:
          self.scaledSeats.append(
             {
-            "Pos": pygame.Vector2((seat["Pos"].x * scale.x) + Rect.x, (seat["Pos"].y * scale.y) + Rect.y), 
+            "Pos": pygame.Vector2((seat["Pos"].x * scale) + Rect.x, (seat["Pos"].y * scale) + Rect.y), 
             "Occupied" : seat["Occupied"]
             })
       
@@ -185,7 +272,7 @@ class SeatComponent:
       for seat in Seats:
          self.Seats.append(
             {
-            "Pos" : pygame.Vector2((seat["Pos"].x - Rect.x) / scale.x, (seat["Pos"].y - Rect.y) / scale.y),
+            "Pos" : pygame.Vector2((seat["Pos"].x - Rect.x) / scale, (seat["Pos"].y - Rect.y) / scale),
             "Occupied" : seat["Occupied"]
             }
          )
@@ -314,14 +401,17 @@ class Manager:
       
       #Prepares surface
       surface = pygame.Surface(transform.rect.size).convert_alpha()
-      surface.fill((0, 0, 0, 0))   
+      surface.fill((0, 0, 0, 0))
+      scale = transform.getScale()
       rect = surface.get_rect()
 
 
       if self.hasComponent(Ent, VertexComponent):
          Vertex : VertexComponent = self.getComponent(Ent, VertexComponent)
 
-         pygame.draw.polygon(surface, (0, 0, 0), Vertex.getScaledVertices(transform.getScale()))
+         pygame.draw.polygon(surface, (0, 0, 0), Vertex.getScaledAndRotatedVertices(transform.getScale(), transform.angle))
+
+         transform.rect.size = Vertex.getScaledAndRotatedSize(scale, transform.angle)
 
 
       else:
@@ -338,7 +428,7 @@ class Manager:
          surface.blit(text.Sprite, [rect.centerx - text.rect.width/2, rect.centery - text.rect.height/2])
 
 
-      #If Obejct has a Collision mask it updates it now
+      #If Object has a Collision mask it updates it now
       if self.hasComponent(Ent, CollisionComponent):
          Collision = self.getComponent(Ent, CollisionComponent)
 

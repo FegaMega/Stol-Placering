@@ -149,7 +149,7 @@ class app:
          return
 
       self.mouseHolding = self.getHolding()   
-      
+      print(self.mouseHolding)
       if self.mouseHolding["ID"] != None and self.mouseSelected == None:
          
          transform : TransformComponent = self.manager.getComponent(self.mouseHolding["ID"], TransformComponent)
@@ -182,9 +182,16 @@ class app:
 
 
             case "Edge":
+                  
+               center = transform.rect.center
+               transform.scale = ((distance(pygame.Vector2(transform.rect.center), mousePos) - self.mouseHolding["Distance"]) / 50) + self.mouseHolding["Scale"]
+
+               print(transform.scale)
+
+               transform.rect.size = transform.rect.width * transform.scale, transform.rect.height * transform.scale
                
-               transform.rect.size = [max(mousePos.x - transform.rect.x, 25), max(mousePos.y - transform.rect.y, 25)]
-               
+               transform.rect.center = center
+
                if self.manager.hasComponent(self.mouseHolding["ID"], CollisionComponent):
                
                   Collision = self.manager.getComponent(self.mouseHolding["ID"], CollisionComponent)
@@ -267,6 +274,7 @@ class app:
       #If already holding something
       if self.mouseHolding["ID"] != None:
 
+         #Nice Cursor change for ease of use 
          if self.mouseHolding["Tag"] == "Edge":
             self.cursorIMG = pygame.SYSTEM_CURSOR_SIZENWSE
          else:
@@ -274,6 +282,9 @@ class app:
 
          return self.mouseHolding
 
+      if hover["Tag"] == "Edge":
+         hover["Distance"] = distance(pygame.Vector2(self.manager.getComponent(hover["ID"], TransformComponent).rect.center), pygame.Vector2(pygame.mouse.get_pos()))
+         hover["Scale"] = self.manager.getComponent(hover["ID"], TransformComponent).scale
       return hover
 
 
