@@ -166,6 +166,7 @@ class app:
 
                #If Table
                if self.manager.hasComponent(self.mouseHolding["ID"], VertexComponent):
+                  
                   self.SnappToVertex(self.mouseHolding["ID"])
 
                #If the object has seats
